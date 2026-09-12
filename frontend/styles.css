@@ -948,6 +948,179 @@ button {
   height: 16px;
 }
 
+/* ===========================================================================
+   AI PiP (Picture-in-Picture) Live Modal — Cyberpunk Neon Style
+   =========================================================================== */
 
+/* VIEW AI Toggle Button — wider than standard icon buttons, with violet neon */
+.ai-toggle-btn {
+  width: auto;
+  padding: 0 10px;
+  gap: 5px;
+  border-color: var(--accent-purple) !important;
+  color: var(--accent-purple);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  animation: ai-btn-pulse 2.4s ease-in-out infinite;
+}
+.ai-toggle-btn:hover {
+  background: rgba(167, 139, 250, 0.14) !important;
+  border-color: var(--accent-purple) !important;
+  color: #c4b5fd;
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.35);
+}
+.ai-btn-icon { font-size: 13px; }
+.ai-btn-text { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; }
 
+@keyframes ai-btn-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(167, 139, 250, 0.25); }
+  50%       { box-shadow: 0 0 10px rgba(167, 139, 250, 0.55); }
+}
+
+/* AI PiP Floating Modal Window */
+.ai-pip-modal {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 540px;
+  background: rgba(10, 12, 20, 0.97);
+  border: 1px solid var(--accent-purple);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.08),
+    0 8px 40px rgba(0, 0, 0, 0.7),
+    0 0 24px rgba(167, 139, 250, 0.12);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pip-appear 0.18s ease-out;
+  user-select: none;
+}
+
+@keyframes pip-appear {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* Header bar */
+.ai-pip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(167, 139, 250, 0.07);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.18);
+  cursor: grab;
+  flex-shrink: 0;
+}
+.ai-pip-head:active { cursor: grabbing; }
+
+.ai-pip-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-purple);
+  font-family: var(--font-mono);
+  flex: 1;
+}
+
+.ai-pip-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #0d1117;
+  background: var(--accent-purple);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+}
+
+.pip-close-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.pip-close-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: var(--accent-crimson);
+  color: var(--accent-crimson);
+}
+
+/* Canvas Body */
+.ai-pip-body {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  background: var(--bg-arena);
+  flex-shrink: 0;
+}
+.pip-ai-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* AI Action reasoning overlay */
+.pip-ai-action-log {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--accent-purple);
+  background: rgba(10, 12, 20, 0.75);
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 4px;
+  padding: 4px 8px;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.04em;
+}
+
+/* Footer stats strip */
+.ai-pip-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 6px 12px;
+  border-top: 1px solid rgba(167, 139, 250, 0.12);
+  background: rgba(167, 139, 250, 0.04);
+  flex-shrink: 0;
+}
+.pip-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.pip-stat-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+.pip-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-purple);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
 

@@ -91,7 +91,7 @@
         <svg class="hud-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
-        <span class="hud-val" id="playerEvacText">0 / 500</span>
+        <span class="hud-val" id="playerEvacText">0 / 300</span>
         <span class="hud-sub">EVACUATED</span>
         <div class="hud-mini-progress">
           <div class="hud-mini-fill fill-human" id="playerProgressBar" style="width: 0%;"></div>
@@ -112,7 +112,7 @@
           <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/>
         </svg>
         <span class="hud-sub">AI</span>
-        <span class="hud-val ai-val" id="aiEvacText">0 / 500</span>
+        <span class="hud-val ai-val" id="aiEvacText">0 / 300</span>
         <div class="hud-mini-progress ai-track">
           <div class="hud-mini-fill fill-ai" id="aiProgressBar" style="width: 0%;"></div>
         </div>
@@ -164,6 +164,12 @@
         </svg>
       </button>
 
+      <!-- View AI Live PiP Modal Button -->
+      <button class="hud-icon-btn ai-toggle-btn" id="btnViewAi" title="Watch AI Live">
+        <span class="ai-btn-icon">🤖</span>
+        <span class="ai-btn-text">VIEW AI</span>
+      </button>
+
       <!-- Minimal Level Dropdown -->
       <div class="hud-level-wrap">
         <button class="hud-level-btn" id="btnLevelMenu" title="Select Level">
@@ -173,9 +179,9 @@
           </svg>
         </button>
         <div class="hud-level-menu" id="levelMenu" hidden>
-          <button class="lvl-menu-item active" data-level="1" id="btnLvl1">LVL 1 — ROOKIE (500)</button>
-          <button class="lvl-menu-item" data-level="2" id="btnLvl2">LVL 2 — PRO (750)</button>
-          <button class="lvl-menu-item" data-level="3" id="btnLvl3">LVL 3 — MASTER (1,000)</button>
+          <button class="lvl-menu-item active" data-level="1" id="btnLvl1">LVL 1 — ROOKIE (300)</button>
+          <button class="lvl-menu-item" data-level="2" id="btnLvl2">LVL 2 — PRO (400)</button>
+          <button class="lvl-menu-item" data-level="3" id="btnLvl3">LVL 3 — MASTER (600)</button>
         </div>
       </div>
     </div>
@@ -327,6 +333,32 @@
   </div>
 
 </div>
+
+  <!-- ============================= AI LIVE PiP MODAL ============================= -->
+  <div id="aiModal" class="ai-pip-modal" hidden>
+    <!-- Drag Handle / Header -->
+    <div class="ai-pip-head" id="aiPipHead">
+      <span class="ai-pip-title">🤖 AI OPPONENT ARENA</span>
+      <span class="ai-pip-badge" id="pipAiDiffBadge">AI: NOVICE</span>
+      <button class="pip-close-btn" id="btnCloseAiModal" title="Close">✕</button>
+    </div>
+    <!-- Canvas Body -->
+    <div class="ai-pip-body">
+      <canvas id="pipAiCanvas" class="pip-ai-canvas"></canvas>
+      <div class="pip-ai-action-log" id="pipAiActionLog">AI Reasoning: Monitoring flow...</div>
+    </div>
+    <!-- Footer Stats Strip -->
+    <div class="ai-pip-footer">
+      <div class="pip-stat">
+        <span class="pip-stat-label">EVACUATED</span>
+        <span class="pip-stat-val" id="pipAiEvacText">0 / 300</span>
+      </div>
+      <div class="pip-stat">
+        <span class="pip-stat-label">PENALTY</span>
+        <span class="pip-stat-val" id="pipAiPenaltyText">+0s</span>
+      </div>
+    </div>
+  </div>
 
 <script src="app.js"></script>
 </body>

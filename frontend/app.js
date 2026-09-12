@@ -30,9 +30,9 @@
   };
 
   const LEVEL_CONFIGS = {
-    1: { name: "ROOKIE", timeLimit: 120, target: 500, diff: "NOVICE" },
-    2: { name: "PRO",    timeLimit: 120, target: 750, diff: "PRO" },
-    3: { name: "MASTER", timeLimit: 100, target: 1000, diff: "PREDICTIVE" }
+    1: { name: "ROOKIE", timeLimit: 150, target: 300, diff: "NOVICE" },
+    2: { name: "PRO",    timeLimit: 180, target: 400, diff: "PRO" },
+    3: { name: "MASTER", timeLimit: 210, target: 600, diff: "PREDICTIVE" }
   };
 
   function riskBand(r) {
@@ -175,6 +175,7 @@
   // Canvases & Contexts
   let playerCanvas, playerCtx;
   let aiCanvas, aiCtx;
+  let pipAiCanvas, pipAiCtx;  // PiP modal dedicated canvas
 
   // ------------------------------------------------------------- Audio FX (Web Audio API)
   let audioCtx = null;
@@ -643,15 +644,15 @@
   function updateRaceHud() {
     if (!latestPlayerState && !latestAiState) return;
 
-    const pState = latestPlayerState || { metrics: {}, evacuated_count: 0, target_evacuation: 500, penalty_seconds: 0, sim_time: 0 };
-    const aState = latestAiState || { metrics: {}, evacuated_count: 0, target_evacuation: 500, penalty_seconds: 0, sim_time: 0 };
+    const pState = latestPlayerState || { metrics: {}, evacuated_count: 0, target_evacuation: 300, penalty_seconds: 0, sim_time: 0 };
+    const aState = latestAiState || { metrics: {}, evacuated_count: 0, target_evacuation: 300, penalty_seconds: 0, sim_time: 0 };
 
     const pEvac = pState.evacuated_count ?? pState.metrics?.evacuated_count ?? 0;
-    const pTarget = pState.target_evacuation ?? pState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 500;
+    const pTarget = pState.target_evacuation ?? pState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 300;
     const pPct = Math.min(100, Math.round((pEvac / Math.max(1, pTarget)) * 100));
 
     const aEvac = aState.evacuated_count ?? aState.metrics?.evacuated_count ?? 0;
-    const aTarget = aState.target_evacuation ?? aState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 500;
+    const aTarget = aState.target_evacuation ?? aState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 300;
     const aPct = Math.min(100, Math.round((aEvac / Math.max(1, aTarget)) * 100));
 
     // Player HUD
@@ -949,7 +950,7 @@
 
     // Human Column
     const pEvac = pState.evacuated_count ?? pState.metrics?.evacuated_count ?? 0;
-    const pTarget = pState.target_evacuation ?? pState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 500;
+    const pTarget = pState.target_evacuation ?? pState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 300;
     const pPen = Math.round(pState.penalty_seconds ?? pState.metrics?.penalty_seconds ?? 0);
     const pHazards = pState.incident_count ?? pState.metrics?.incident_count ?? 0;
     const pFinalTime = baseElapsed + pPen;
@@ -962,7 +963,7 @@
 
     // AI Column
     const aEvac = aState.evacuated_count ?? aState.metrics?.evacuated_count ?? 0;
-    const aTarget = aState.target_evacuation ?? aState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 500;
+    const aTarget = aState.target_evacuation ?? aState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 300;
     const aPen = Math.round(aState.penalty_seconds ?? aState.metrics?.penalty_seconds ?? 0);
     const aHazards = aState.incident_count ?? aState.metrics?.incident_count ?? 0;
     const aFinalTime = baseElapsed + aPen;
@@ -1010,13 +1011,19 @@
     aiCanvas = document.getElementById("aiCanvas");
     aiCtx = aiCanvas ? aiCanvas.getContext("2d") : null;
 
+    // PiP modal canvas — separate dedicated canvas for floating AI view
+    pipAiCanvas = document.getElementById("pipAiCanvas");
+    pipAiCtx = pipAiCanvas ? pipAiCanvas.getContext("2d") : null;
+
     window.addEventListener("resize", () => {
       if (playerCanvas) fitCanvas(playerCanvas);
       if (aiCanvas) fitCanvas(aiCanvas);
+      if (pipAiCanvas && !document.getElementById("aiModal")?.hidden) fitCanvas(pipAiCanvas);
     });
 
     if (playerCanvas) fitCanvas(playerCanvas);
     if (aiCanvas) fitCanvas(aiCanvas);
+    if (pipAiCanvas) fitCanvas(pipAiCanvas);
 
     // Interactive Canvas ONLY for Player (aiCanvas remains purely spectator)
     if (playerCanvas) {
@@ -1411,8 +1418,47 @@
     if (aiCtx && aiCanvas) {
       drawArena(aiCtx, aiCanvas, latestAiState, false, now);
     }
+
+    // PiP Modal: render AI arena into the dedicated pip canvas only when modal is visible
+    const aiModal = document.getElementById("aiModal");
+    if (aiModal && !aiModal.hidden && pipAiCtx && pipAiCanvas && latestAiState) {
+      fitCanvas(pipAiCanvas);
+      drawArena(pipAiCtx, pipAiCanvas, latestAiState, false, now);
+      updatePipModalStats(latestAiState);
+    }
+
     requestAnimationFrame(renderLoop);
   }
+
+  // PiP footer stats sync — called every frame when modal is open
+  function updatePipModalStats(aState) {
+    const aEvac  = aState.evacuated_count ?? aState.metrics?.evacuated_count ?? 0;
+    const aTarget = aState.target_evacuation ?? aState.metrics?.target_evacuation ?? LEVEL_CONFIGS[currentLevel]?.target ?? 300;
+    const aPen   = Math.round(aState.penalty_seconds ?? aState.metrics?.penalty_seconds ?? 0);
+    const aiDiff = (aState.difficulty || LEVEL_CONFIGS[currentLevel]?.diff || "novice").toUpperCase();
+
+    const evacEl    = document.getElementById("pipAiEvacText");
+    const penEl     = document.getElementById("pipAiPenaltyText");
+    const badgeEl   = document.getElementById("pipAiDiffBadge");
+    const reasonEl  = document.getElementById("pipAiActionLog");
+
+    if (evacEl)   evacEl.textContent   = `${aEvac} / ${aTarget}`;
+    if (penEl)    penEl.textContent    = `+${aPen}s`;
+    if (badgeEl)  badgeEl.textContent  = `AI: ${aiDiff}`;
+
+    // Live AI reasoning — read from active decision
+    if (reasonEl && aState.active_decision) {
+      const dec = aState.active_decision;
+      if (dec.action && dec.action !== "DO_NOTHING") {
+        const actionLabel = dec.action.replace(/_/g, " ");
+        const reason = dec.reason ? ` — ${dec.reason}` : "";
+        reasonEl.textContent = `AI Reasoning: ${actionLabel}${reason}`;
+      } else {
+        reasonEl.textContent = "AI Reasoning: Monitoring flow...";
+      }
+    }
+  }
+
 
   function drawTempleArena(ctx, canvas, state, isPlayer, now) {
     const w = canvas.width;
@@ -2632,6 +2678,65 @@
         emg = !emg;
         apiPost("/api/emergency", { active: emg, responder_start: "GATE-01", responder_destination: "CP-09" });
         btnEmergency.classList.toggle("active", emg);
+      });
+    }
+
+    // ------------------------------------------------------------------ AI PiP Modal Controls
+    const aiModal      = document.getElementById("aiModal");
+    const btnViewAi    = document.getElementById("btnViewAi");
+    const btnCloseAiModal = document.getElementById("btnCloseAiModal");
+
+    function openAiModal() {
+      if (!aiModal) return;
+      aiModal.hidden = false;
+      // Fit the pip canvas now it's visible
+      if (pipAiCanvas) fitCanvas(pipAiCanvas);
+      playClickSound();
+    }
+
+    function closeAiModal() {
+      if (!aiModal) return;
+      aiModal.hidden = true;
+      playClickSound();
+    }
+
+    if (btnViewAi)     btnViewAi.addEventListener("click", openAiModal);
+    if (btnCloseAiModal) btnCloseAiModal.addEventListener("click", closeAiModal);
+
+    // Close on Escape (non-blocking — does not pause the match)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && aiModal && !aiModal.hidden) closeAiModal();
+    });
+
+    // Draggable header — allows repositioning the PiP window
+    const pipHead = document.getElementById("aiPipHead");
+    if (pipHead && aiModal) {
+      let dragStartX = 0, dragStartY = 0;
+      let modalStartRight = 20, modalStartBottom = 20;
+
+      pipHead.addEventListener("mousedown", (e) => {
+        if (e.target === btnCloseAiModal) return; // don't drag when clicking X
+        e.preventDefault();
+        const rect = aiModal.getBoundingClientRect();
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        modalStartRight  = window.innerWidth  - rect.right;
+        modalStartBottom = window.innerHeight - rect.bottom;
+        aiModal.style.transition = "none";
+
+        function onMove(me) {
+          const dx = me.clientX - dragStartX;
+          const dy = me.clientY - dragStartY;
+          aiModal.style.right  = `${Math.max(0, modalStartRight  - dx)}px`;
+          aiModal.style.bottom = `${Math.max(0, modalStartBottom + dy)}px`;
+        }
+        function onUp() {
+          aiModal.style.transition = "";
+          document.removeEventListener("mousemove", onMove);
+          document.removeEventListener("mouseup",   onUp);
+        }
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup",   onUp);
       });
     }
   }
