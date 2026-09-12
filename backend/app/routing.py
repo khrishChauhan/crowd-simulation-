@@ -23,6 +23,9 @@ def edge_cost(sg: StadiumGraph, source: str, target: str, horizon: int = 15) -> 
         return float("inf")
     if e.control_state == "BLOCK":
         return float("inf")
+    tgt = sg.nodes.get(target)
+    if tgt and tgt.control_state == "BLOCK":
+        return float("inf")
     w = config.GRAPH_WEIGHTS
     congestion = min(1.0, e.utilization)
     predicted_risk = e.predicted_flow.get(horizon, e.current_flow) / max(e.capacity, 0.01)
@@ -40,18 +43,22 @@ def edge_cost(sg: StadiumGraph, source: str, target: str, horizon: int = 15) -> 
 
 def dynamic_astar(sg: StadiumGraph, start: str, goal: str, horizon: int = 15) -> Optional[List[str]]:
     """Dijkstra over dynamic risk-aware costs (heuristic=0 keeps it exact/admissible)."""
+    from .graph_model import ALIAS_MAP
     if start not in sg.nodes or goal not in sg.nodes:
         return None
-    dist: Dict[str, float] = {start: 0.0}
+    canonical_start = ALIAS_MAP.get(start, start)
+    canonical_goal = ALIAS_MAP.get(goal, goal)
+
+    dist: Dict[str, float] = {canonical_start: 0.0}
     prev: Dict[str, str] = {}
     visited = set()
-    pq = [(0.0, start)]
+    pq = [(0.0, canonical_start)]
     while pq:
         d, u = heapq.heappop(pq)
         if u in visited:
             continue
         visited.add(u)
-        if u == goal:
+        if u == canonical_goal:
             break
         for v in sg.neighbors(u):
             c = edge_cost(sg, u, v, horizon)
@@ -62,12 +69,16 @@ def dynamic_astar(sg: StadiumGraph, start: str, goal: str, horizon: int = 15) ->
                 dist[v] = nd
                 prev[v] = u
                 heapq.heappush(pq, (nd, v))
-    if goal not in dist:
+    if canonical_goal not in dist:
         return None
-    path = [goal]
-    while path[-1] != start:
+    path = [canonical_goal]
+    while path[-1] != canonical_start:
         path.append(prev[path[-1]])
     path.reverse()
+    if start != canonical_start:
+        path[0] = start
+    if goal != canonical_goal:
+        path[-1] = goal
     return path
 
 

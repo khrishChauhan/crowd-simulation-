@@ -110,15 +110,15 @@ def _upstream_nodes(sg: StadiumGraph, target: str, max_hops: int) -> List[str]:
 
 
 def _project_effect(sg: StadiumGraph, risk_node_id: str, intervention_node_id: str,
-                     action: str, diversion_fraction: float = 0.35) -> Dict[str, float]:
+                     action: str, diversion_fraction: float = 0.35,
+                     horizon: int = 60) -> Dict[str, float]:
     """
     Cheap forward projection: estimates the effect of diverting a fraction of
     the intervention node's outflow away from the path leading to risk_node,
-    using the flow-conservation relation over the 60s horizon. This is
+    using the flow-conservation relation over the given horizon (default 60s). This is
     intentionally lightweight so many candidates can be scored every cycle.
     """
     risk_node = sg.nodes[risk_node_id]
-    horizon = 60
     CRUSH_DENSITY = 4.5  # same saturation reference used by the predictor
     critical_people = critical_people_for_node(risk_node)
 
@@ -186,7 +186,9 @@ def _cost(effect: Dict[str, float]) -> float:
 
 
 def plan_intervention(sg: StadiumGraph, risk_node_id: str,
-                       destinations: Optional[List[str]] = None) -> Decision:
+                       destinations: Optional[List[str]] = None,
+                       allowed_actions: Optional[List[str]] = None,
+                       horizon: int = 60) -> Decision:
     """
     Main entry point: given a node predicted to become critical, search
     candidate (upstream checkpoint, action) pairs and pick the lowest-cost
@@ -195,12 +197,12 @@ def plan_intervention(sg: StadiumGraph, risk_node_id: str,
     destinations = destinations or [n for n in sg.nodes if sg.nodes[n].type == "EXIT"]
     risk_node = sg.nodes[risk_node_id]
     risk_without = node_risk(sg, risk_node,
-                              risk_node.predicted_density.get(60, risk_node.current_density))["risk"]
+                              risk_node.predicted_density.get(horizon, risk_node.current_density))["risk"]
 
     candidates: List[Candidate] = []
 
     # Baseline
-    base_effect = _project_effect(sg, risk_node_id, risk_node_id, "DO_NOTHING")
+    base_effect = _project_effect(sg, risk_node_id, risk_node_id, "DO_NOTHING", horizon=horizon)
     candidates.append(Candidate(
         checkpoint=risk_node_id, action="DO_NOTHING",
         projected_max_density=base_effect["max_density"],
@@ -220,12 +222,14 @@ def plan_intervention(sg: StadiumGraph, risk_node_id: str,
 
     for cp in upstream:
         for action, frac in action_diversion.items():
+            if allowed_actions is not None and action not in allowed_actions:
+                continue
             # Safety guardrail: never allow BLOCK_EDGE if it would disconnect a destination
             if action == "BLOCK_EDGE":
                 would_disconnect = not all_destinations_reachable(sg, cp, destinations)
                 if would_disconnect:
                     continue
-            effect = _project_effect(sg, risk_node_id, cp, action, diversion_fraction=frac)
+            effect = _project_effect(sg, risk_node_id, cp, action, diversion_fraction=frac, horizon=horizon)
             cost = _cost(effect)
             cand = Candidate(
                 checkpoint=cp, action=action,

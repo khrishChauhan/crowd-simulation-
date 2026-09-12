@@ -9,8 +9,8 @@ hackathon demo - not scientifically validated crowd-safety thresholds.
 # ---------------------------------------------------------------------------
 # Simulation
 # ---------------------------------------------------------------------------
-SIMULATION_DT = 0.5              # seconds per physics tick
-CONTROL_INTERVAL_TICKS = 4       # run the AI control loop every N ticks (~2s)
+SIMULATION_DT = 0.05             # seconds per physics tick (20 ticks/s for smooth movement)
+CONTROL_INTERVAL_TICKS = 40      # run the AI control loop every N ticks (~2s wall-clock)
 MAX_PARTICLES = 1400             # hard cap on simulated agents
 DEMO_RANDOM_SEED = 42            # deterministic hackathon demo
 
@@ -112,6 +112,32 @@ CAMERA_FILENAMES = {
 SURGE_INFLOW_GROWTH_RATIO = 1.35   # inflow must grow by >35% over window
 SURGE_WINDOW_SAMPLES = 4
 COUNTERFLOW_RATIO_ALERT = 0.18
+
+# ---------------------------------------------------------------------------
+# Hazard Engine & Incident Penalties
+# ---------------------------------------------------------------------------
+HAZARD_CAPACITY_MULTIPLIER = 2.5   # capacity * 2.5 gives hazard ceiling
+HAZARD_OCCUPANCY_THRESHOLD = 0.50  # >= 50% crowded triggers check
+HAZARD_TRIGGER_PROBABILITY = 0.50  # 50% random roll
+HAZARD_PENALTY_SECONDS = 3.0       # +3s penalty per incident
+
+# ---------------------------------------------------------------------------
+# AI Competitor Difficulty Tiers
+# ---------------------------------------------------------------------------
+DIFFICULTY_TIERS = ("novice", "pro", "super_predictive")
+AI_REPLAN_INTERVAL_TICKS = {
+    "novice": 10,             # ~5.0s sluggish latency
+    "pro": 4,                 # ~2.0s fast latency
+    "super_predictive": 2,    # ~1.0s instant/proactive
+}
+AI_ALLOWED_ACTIONS = {
+    "novice": ["DO_NOTHING", "HOLD"],
+    "pro": ["DO_NOTHING", "HOLD", "REDIRECT_LEFT", "REDIRECT_RIGHT", "SPLIT_FLOW"],
+    "super_predictive": [
+        "DO_NOTHING", "HOLD", "REDIRECT_LEFT", "REDIRECT_RIGHT",
+        "SPLIT_FLOW", "BLOCK_EDGE", "CHANGE_DESTINATION_ROUTE"
+    ],
+}
 
 # ---------------------------------------------------------------------------
 # Misc

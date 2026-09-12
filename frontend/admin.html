@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CrowdShield — Visual Map Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="editor-layout">
+    <!-- TOP HEADER -->
+    <header class="editor-header">
+      <div class="header-brand">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="header-title">CROWDSHIELD MAP ARCHITECT</span>
+        <span class="header-badge">ADMIN</span>
+      </div>
+      <div class="header-actions">
+        <span id="coordsDisplay" class="coords-display">X: 0 | Y: 0 (Zoom: 100%)</span>
+        <a id="lnkPlayLevel" href="/level1" class="btn btn-secondary">Play Level <span id="hdrPlayLvlNum">1</span></a>
+        <a href="/" class="btn btn-secondary">Main Menu</a>
+      </div>
+    </header>
+
+    <div class="editor-body">
+      <!-- SIDEBAR TOOLBAR -->
+      <aside class="editor-sidebar" id="editorSidebar">
+        <!-- LEVEL SELECTOR -->
+        <section class="tool-section">
+          <h3 class="section-title">SELECT LEVEL</h3>
+          <div class="form-group">
+            <select id="levelSelect" class="form-select level-dropdown">
+              <option value="1">Level 1 (Temple Evacuation)</option>
+              <option value="2">Level 2 (Metro Station)</option>
+              <option value="3">Level 3 (Grand Stadium)</option>
+            </select>
+          </div>
+          <div class="level-status-pill" id="levelStatusPill">
+            Status: <span id="levelStatusText" class="status-badge">Default Template</span>
+          </div>
+        </section>
+
+        <!-- MODE SELECTOR -->
+        <section class="tool-section">
+          <h3 class="section-title">EDITOR MODE</h3>
+          <div class="mode-selector" id="modeSelector">
+            <label class="mode-radio-label active" data-mode="select">
+              <input type="radio" name="editorMode" value="select" checked />
+              <span class="mode-icon">✥</span>
+              <span class="mode-text">Move / Select</span>
+            </label>
+            <label class="mode-radio-label" data-mode="node">
+              <input type="radio" name="editorMode" value="node" />
+              <span class="mode-icon">●</span>
+              <span class="mode-text">Add Node</span>
+            </label>
+            <label class="mode-radio-label" data-mode="edge">
+              <input type="radio" name="editorMode" value="edge" />
+              <span class="mode-icon">╱</span>
+              <span class="mode-text">Connect Edges</span>
+            </label>
+            <label class="mode-radio-label" data-mode="crate">
+              <input type="radio" name="editorMode" value="crate" />
+              <span class="mode-icon">■</span>
+              <span class="mode-text">Add Crate</span>
+            </label>
+            <label class="mode-radio-label" data-mode="barrier">
+              <input type="radio" name="editorMode" value="barrier" />
+              <span class="mode-icon">↰</span>
+              <span class="mode-text">Add Barrier</span>
+            </label>
+            <label class="mode-radio-label danger-mode" data-mode="delete">
+              <input type="radio" name="editorMode" value="delete" />
+              <span class="mode-icon">✕</span>
+              <span class="mode-text">Delete</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- NODE TYPE PROPERTIES -->
+        <section class="tool-section" id="nodeTypeSection">
+          <h3 class="section-title">NODE PROPERTIES</h3>
+          <div class="form-group">
+            <label for="nodeTypeSelect">Node Type</label>
+            <select id="nodeTypeSelect" class="form-select">
+              <option value="GATE">GATE (Entry - Green)</option>
+              <option value="EXIT">EXIT (Exit - Red)</option>
+              <option value="CHECKPOINT" selected>CHECKPOINT (Corridor - Cyan)</option>
+              <option value="JUNCTION">JUNCTION (Crossroad - Purple)</option>
+              <option value="EMERGENCY">EMERGENCY (Sanctuary - Magenta)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nodeNameInput">Node Name / Label</label>
+            <input type="text" id="nodeNameInput" class="form-input" placeholder="Auto-generated or custom" />
+          </div>
+        </section>
+
+        <!-- TOPOLOGY STATS & INSPECTOR -->
+        <section class="tool-section">
+          <h3 class="section-title">TOPOLOGY STATS</h3>
+          <div class="stats-grid">
+            <div class="stat-card"><span class="stat-label">Nodes</span><span class="stat-value" id="statNodes">0</span></div>
+            <div class="stat-card"><span class="stat-label">Edges</span><span class="stat-value" id="statEdges">0</span></div>
+            <div class="stat-card"><span class="stat-label">Crates</span><span class="stat-value" id="statCrates">0</span></div>
+            <div class="stat-card"><span class="stat-label">Barriers</span><span class="stat-value" id="statBarriers">0</span></div>
+          </div>
+          <div id="selectionInspector" class="selection-inspector">
+            <span class="text-dim">Select an element to inspect</span>
+          </div>
+        </section>
+
+        <!-- ACTIONS: ONLY RESET AND SAVE -->
+        <section class="tool-section actions-section">
+          <h3 class="section-title">ACTIONS</h3>
+          <div class="action-buttons-stack">
+            <button id="btnSaveServer" class="btn btn-primary btn-block">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save to Server
+            </button>
+            <button id="btnResetDefault" class="btn btn-secondary btn-block" title="Discard custom changes and reload default preload template from server">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              Reset to Default
+            </button>
+          </div>
+        </section>
+
+        <!-- INSTRUCTIONS HINT -->
+        <div class="editor-hint" id="modeHint">
+          <strong>Mode Hint:</strong> Click and drag nodes to reposition them. Scroll wheel to zoom. Middle-click drag to pan.
+        </div>
+      </aside>
+
+      <!-- MAIN CANVAS WORKSPACE -->
+      <main class="editor-canvas-container" id="canvasContainer">
+        <canvas id="editorCanvas"></canvas>
+        
+        <!-- FLOATING CANVAS CONTROLS (ZOOM / PAN) -->
+        <div class="canvas-floating-controls">
+          <button id="btnZoomIn" class="float-btn" title="Zoom In">+</button>
+          <button id="btnZoomOut" class="float-btn" title="Zoom Out">−</button>
+          <button id="btnResetView" class="float-btn" title="Reset View (Fit 1280x853)">⤢</button>
+          <button id="btnToggleGrid" class="float-btn active" title="Toggle Grid">#</button>
+        </div>
+
+        <!-- STATUS TOAST -->
+        <div id="editorToast" class="editor-toast" hidden></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

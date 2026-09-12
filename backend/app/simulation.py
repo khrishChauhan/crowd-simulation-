@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from . import config
-from .graph_model import StadiumGraph, build_stadium_graph
+from .graph_model import StadiumGraph, build_stadium_graph, build_temple_graph, build_graph_for_level
 from .predictor import SpatioTemporalCrowdPredictor
 from .risk_engine import node_risk, band_for, bottleneck_probability, time_to_critical_seconds, critical_people_for_node
 from .routing import dynamic_astar
@@ -58,14 +58,26 @@ class Agent:
     dwell_ticks: int = 0
     lateral_offset: float = 0.0
     ghost: bool = False
+    # 4-stage lifecycle: INGRESS | CENTER_DWELL | EGRESS | EVACUATED
+    stage: str = "INGRESS"
+    center_dwell_ticks: int = 0
+    is_congested: bool = False
 
 
 class SimulationEngine:
-    def __init__(self, on_event=None, on_state=None):
-        self.sg: StadiumGraph = build_stadium_graph()
+    def __init__(self, on_event=None, on_state=None, seed: int = None, arena_id: str = "player",
+                 target_evacuation: int = 2000, difficulty: str = "novice",
+                 center_dwell_sec: float = 2.5, level: int = 2):
+        self.level = level
+        self.sg: StadiumGraph = build_graph_for_level(level)
         self.predictor = SpatioTemporalCrowdPredictor()
         self.cameras = CameraManager()
-        self.rng = random.Random(config.DEMO_RANDOM_SEED)
+        _seed = seed if seed is not None else config.DEMO_RANDOM_SEED
+        self.rng = random.Random(_seed)
+        self.seed = _seed
+        self.arena_id = arena_id
+        self.difficulty = difficulty
+        self.center_dwell_sec = center_dwell_sec
         self.agents: Dict[int, Agent] = {}
         self._next_agent_id = itertools.count(1)
         self.tick_count = 0
@@ -81,33 +93,96 @@ class SimulationEngine:
         self.arrival_counters: Dict[str, int] = {}
         self.departure_counters: Dict[str, int] = {}
         self.edge_transit_counters: Dict[tuple, int] = {}
+        self.last_intervention_tick: int = 0
+        # ---- Lifecycle node groups ----
+        self._gate_nodes = [n for n, node in self.sg.nodes.items() if node.type == "GATE"]
+        self._seating_nodes = [n for n, node in self.sg.nodes.items() if node.type == "SEATING"] or [n for n, node in self.sg.nodes.items() if node.type in ("CHECKPOINT", "JUNCTION")]
+        self._exit_nodes = [n for n, node in self.sg.nodes.items() if node.type == "EXIT"]
         self._destinations = [n for n, node in self.sg.nodes.items() if node.type in DESTINATION_TYPES]
-        self._seed_population(base_size=220)
+        # ---- Arena state counters ----
+        self.evacuated_count: int = 0
+        self.target_evacuation: int = target_evacuation
+        self.penalty_seconds: float = 0.0
+        self.incident_count: int = 0
+        self.evacuation_log: List[dict] = []
+        self.total_spawned: int = 0
+        self.spawn_timer_sec: float = 0.0
+        self.spawn_budget_this_second: int = 0
+        # ---- Seed initial population ----
+        self._seed_population(base_size=180 if level == 1 else 220)
         self.metrics_history: List[dict] = []
+
+    def set_level(self, level: int):
+        self.level = level
+        self.sg = build_graph_for_level(level)
+        self._gate_nodes = [n for n, node in self.sg.nodes.items() if node.type == "GATE"]
+        self._seating_nodes = [n for n, node in self.sg.nodes.items() if node.type == "SEATING"] or [n for n, node in self.sg.nodes.items() if node.type in ("CHECKPOINT", "JUNCTION")]
+        self._exit_nodes = [n for n, node in self.sg.nodes.items() if node.type == "EXIT"]
+        self._destinations = [n for n, node in self.sg.nodes.items() if node.type in DESTINATION_TYPES]
+        self.agents.clear()
+        self.tick_count = 0
+        self.evacuated_count = 0
+        self.total_spawned = 0
+        self.spawn_timer_sec = 0.0
+        self.spawn_budget_this_second = 0
+        self.penalty_seconds = 0.0
+        self.incident_count = 0
+        self.evacuation_log.clear()
+        self.events.clear()
+        self.decisions_log.clear()
+        self.active_decision = None
+        self._seed_population(base_size=180 if level == 1 else 220)
 
     # ---------------------------------------------------------------- setup
     def _seed_population(self, base_size: int):
-        seating = [n for n, nd in self.sg.nodes.items() if nd.type == "SEATING"]
+        """Spawn an initial population entering through gates and concourses toward seating."""
+        spawn_pool = self._gate_nodes * 2 + [n for n, node in self.sg.nodes.items() if node.type in ("CHECKPOINT", "JUNCTION")]
         for _ in range(base_size):
-            start = self.rng.choice(seating)
-            self._spawn_agent(start)
+            node_id = self.rng.choice(spawn_pool)
+            self._spawn_agent(node_id, stage="INGRESS")
 
-    def _spawn_agent(self, at_node: str, destination: Optional[str] = None):
+    def _spawn_agent(self, at_node: str = None, destination: Optional[str] = None,
+                     stage: str = "INGRESS"):
+        from .graph_model import ALIAS_MAP
         if len(self.agents) >= config.MAX_PARTICLES:
             return None
-        dest = destination or self.rng.choice([d for d in self._destinations if d != at_node])
-        route = dynamic_astar(self.sg, at_node, dest) or [at_node]
+        # Default spawn point: random perimeter gate
+        if at_node is None:
+            at_node = self.rng.choice(self._gate_nodes)
+        at_node = ALIAS_MAP.get(at_node, at_node)
+        # Default destination depends on stage
+        if destination is None:
+            if stage == "INGRESS":
+                destination = self.rng.choice(self._seating_nodes)
+            else:
+                active_exits = self._get_active_exits()
+                destination = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
+        destination = ALIAS_MAP.get(destination, destination)
+        route = dynamic_astar(self.sg, at_node, destination) or [at_node]
         node = self.sg.nodes[at_node]
         aid = next(self._next_agent_id)
         agent = Agent(
-            id=aid, x=node.x, y=node.y, current_node=at_node, route=route[1:], destination=dest,
+            id=aid, x=node.x, y=node.y, current_node=at_node, route=route[1:], destination=destination,
             group_id=self.rng.randint(0, 5),
             response_delay=self.rng.randint(1, 6),
             compliance_probability=self.rng.uniform(0.65, 0.97),
             lateral_offset=self.rng.uniform(-3.5, 3.5),
+            stage=stage,
         )
         self.agents[aid] = agent
+        self.total_spawned += 1
         return agent
+
+    def _get_active_exits(self) -> List[str]:
+        """Return exits that have at least one unblocked incoming corridor."""
+        active = []
+        for eid in self._exit_nodes:
+            for pred in self.sg.predecessors(eid):
+                edge = self.sg.edges.get((pred, eid))
+                if edge and edge.enabled and edge.control_state != "BLOCK":
+                    active.append(eid)
+                    break
+        return active if active else list(self._exit_nodes)
 
     # -------------------------------------------------------------- ticking
     def step(self):
@@ -115,6 +190,38 @@ class SimulationEngine:
         self.tick_count += 1
         self._move_agents(dt)
         self._recompute_occupancy()
+
+        # -----------------------------------------------------------------
+        # True Random Trickle Spawner (Every second)
+        # -----------------------------------------------------------------
+        if self.total_spawned < self.target_evacuation:
+            # 1-second countdown bucket
+            if not hasattr(self, 'spawn_timer_sec') or self.spawn_timer_sec <= 0:
+                self.spawn_timer_sec = 1.0
+                # Randomize how many people spawn this entire second 
+                # (e.g., sometimes 0, sometimes 5, sometimes 6)
+                self.spawn_budget_this_second = self.rng.randint(0, 7)
+            
+            self.spawn_timer_sec -= dt
+            
+            # Distribute this second's budget randomly across its remaining ticks
+            ticks_left = max(1, int(self.spawn_timer_sec / dt))
+            chance_per_tick = self.spawn_budget_this_second / ticks_left
+            
+            spawn_count = 0
+            if self.rng.random() < chance_per_tick:
+                spawn_count = 1
+                self.spawn_budget_this_second -= 1
+            
+            spawn_count = min(spawn_count, self.target_evacuation - self.total_spawned)
+            
+            for _ in range(spawn_count):
+                if len(self.agents) < config.MAX_PARTICLES:
+                    gate = self.rng.choice(self._gate_nodes)
+                    # If the player clicked the Gate to BLOCK it, skip spawning!
+                    if self.sg.nodes[gate].control_state != "BLOCK":
+                        seating = self.rng.choice(self._seating_nodes)
+                        self._spawn_agent(gate, destination=seating, stage="INGRESS")
 
         if self.tick_count % config.CONTROL_INTERVAL_TICKS == 0:
             self._control_cycle()
@@ -137,7 +244,38 @@ class SimulationEngine:
     def _depart_from_node(self, agent: Agent):
         node = self.sg.nodes[agent.current_node]
 
-        # Checkpoint HOLD: agents wait, do not depart while dwell_ticks remain
+        # ---- Immediate evacuation if agent reaches an EXIT node ----
+        if node.type == "EXIT":
+            agent.stage = "EVACUATED"
+            self.evacuated_count += 1
+            self.evacuation_log.append({
+                "agent_id": agent.id,
+                "exit": agent.current_node,
+                "tick": self.tick_count,
+                "timestamp": time.time(),
+            })
+            if len(self.evacuation_log) > 500:
+                self.evacuation_log.pop(0)
+            if agent.id in self.agents:
+                del self.agents[agent.id]
+            return
+
+        # ---- Stage 2: CENTER_DWELL — mandatory 2.5s dwell at seating ----
+        if agent.stage == "CENTER_DWELL":
+            if agent.center_dwell_ticks > 0:
+                agent.center_dwell_ticks -= 1
+                return
+            # Dwell expired → transition to Stage 3 EGRESS
+            agent.stage = "EGRESS"
+            active_exits = self._get_active_exits()
+            exit_dest = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
+            egress_route = dynamic_astar(self.sg, agent.current_node, exit_dest)
+            if egress_route:
+                agent.destination = exit_dest
+                agent.route = egress_route[1:]
+            return
+
+        # ---- Checkpoint HOLD: agents wait, do not depart while dwell_ticks remain ----
         if node.control_state == "HOLD" and agent.dwell_ticks <= 0:
             agent.dwell_ticks = 3
         if agent.dwell_ticks > 0:
@@ -145,14 +283,21 @@ class SimulationEngine:
             return
 
         if not agent.route:
-            # Arrived at destination: dwell, then pick a new one (keeps population alive)
-            if agent.current_node == agent.destination:
-                new_dest = self.rng.choice([d for d in self._destinations if d != agent.current_node])
-                new_route = dynamic_astar(self.sg, agent.current_node, new_dest)
-                if new_route:
-                    agent.route = new_route[1:]
-                    agent.destination = new_dest
+            if agent.stage == "INGRESS" and agent.current_node == agent.destination:
+                # Arrived at seating center → begin mandatory dwell (Stage 2)
+                agent.stage = "CENTER_DWELL"
+                agent.center_dwell_ticks = int(self.center_dwell_sec / config.SIMULATION_DT)  # 5 ticks @ 0.5s = 2.5s
+                return
+            elif agent.stage == "EGRESS":
+                # Route expired but not at exit yet — reroute to active exit
+                active_exits = self._get_active_exits()
+                exit_dest = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
+                egress_route = dynamic_astar(self.sg, agent.current_node, exit_dest)
+                if egress_route:
+                    agent.destination = exit_dest
+                    agent.route = egress_route[1:]
             else:
+                # Reroute toward current destination
                 new_route = dynamic_astar(self.sg, agent.current_node, agent.destination)
                 agent.route = new_route[1:] if new_route else []
             if not agent.route:
@@ -171,22 +316,50 @@ class SimulationEngine:
                     agent.route = [alt] + rerouted[1:]
                     next_node_id = alt
                     edge = self.sg.edges.get((agent.current_node, next_node_id))
+        elif cs == "SPLIT_FLOW" and self.rng.random() < agent.compliance_probability:
+            from .flow_optimizer import min_cost_flow_split
+            active_exits = self._get_active_exits()
+            if len(active_exits) > 1:
+                split = min_cost_flow_split(self.sg, agent.current_node, active_exits, demand=float(len(self.agents)))
+                best_exit = max(split.keys(), key=lambda ex: split.get(ex, 0.0))
+                if best_exit != agent.destination:
+                    rerouted = dynamic_astar(self.sg, agent.current_node, best_exit)
+                    if rerouted and len(rerouted) > 1:
+                        agent.destination = best_exit
+                        agent.route = rerouted[1:]
+                        next_node_id = agent.route[0]
+                        edge = self.sg.edges.get((agent.current_node, next_node_id))
 
-        if edge is None or not edge.enabled or edge.control_state == "BLOCK":
+        target_node = self.sg.nodes.get(next_node_id)
+        if edge is None or not edge.enabled or edge.control_state == "BLOCK" or (target_node and target_node.control_state == "BLOCK"):
             rerouted = dynamic_astar(self.sg, agent.current_node, agent.destination)
             if rerouted and len(rerouted) > 1:
                 agent.route = rerouted[1:]
                 next_node_id = agent.route[0]
                 edge = self.sg.edges.get((agent.current_node, next_node_id))
             else:
-                return  # no feasible route right now; wait this tick
+                # If current destination is blocked or unreachable, try any other active exit if in EGRESS
+                if agent.stage in ("EGRESS", "CENTER_DWELL"):
+                    active_exits = self._get_active_exits()
+                    for alt_ex in active_exits:
+                        if alt_ex != agent.destination and self.sg.nodes[alt_ex].control_state != "BLOCK":
+                            alt_route = dynamic_astar(self.sg, agent.current_node, alt_ex)
+                            if alt_route and len(alt_route) > 1:
+                                agent.destination = alt_ex
+                                agent.route = alt_route[1:]
+                                next_node_id = agent.route[0]
+                                edge = self.sg.edges.get((agent.current_node, next_node_id))
+                                break
+                if edge is None or not edge.enabled or edge.control_state == "BLOCK":
+                    return  # no feasible route right now; wait this tick
 
         if edge is None:
             return
 
+        # Commit to the move
         agent.target_node = next_node_id
         agent.progress = 0.0
-        agent.route = agent.route[1:]
+        agent.route.pop(0)
         key = (agent.current_node, next_node_id)
         self.edge_transit_counters[key] = self.edge_transit_counters.get(key, 0) + 1
         self.departure_counters[agent.current_node] = self.departure_counters.get(agent.current_node, 0) + 1
@@ -206,12 +379,35 @@ class SimulationEngine:
         if edge is None:
             agent.current_node, agent.target_node = agent.target_node, None
             return
-        occupancy = self.edge_live_count.get((agent.current_node, agent.target_node), 1) if hasattr(self, "edge_live_count") else 1
-        max_concurrent = max(1.0, edge.capacity * 2.2)
-        congestion = min(1.5, occupancy / max_concurrent)
-        speed_factor = max(0.12, 1.0 - 0.65 * congestion)
-        base_speed = 1.35  # m/s
-        agent.progress += (base_speed * speed_factor * dt) / max(edge.length, 1.0)
+        dst = self.sg.nodes[agent.target_node]
+
+        # Check if corridor or destination became BLOCKED while in transit
+        if edge.control_state == "BLOCK" or not edge.enabled or dst.control_state == "BLOCK":
+            # If agent has progressed less than 60%, turn around back to current_node
+            if agent.progress < 0.6:
+                agent.current_node, agent.target_node = agent.target_node, agent.current_node
+                agent.progress = max(0.0, 1.0 - agent.progress)
+                agent.route = []
+                return
+            else:
+                speed_factor = 0.0
+                agent.is_congested = True
+        else:
+            occupancy = self.edge_live_count.get((agent.current_node, agent.target_node), 1) if hasattr(self, "edge_live_count") else 1
+            
+            reference_L = 50.0 
+            scaled_half_capacity = 10.0 * (max(edge.length, 1.0) / reference_L)
+            
+            density_ratio = occupancy / max(scaled_half_capacity, 1.0)
+            speed_factor = 1.0 / (1.0 + density_ratio)
+            speed_factor = max(0.5, speed_factor)
+            
+            # 1. NEW: Flag the agent as congested if speed drops below 65% of max
+            agent.is_congested = (speed_factor <= 0.65)
+            
+        # 2. USER RULE: Lower the speed from 18.0 to 10.0 (the sweet spot)
+        base_speed = 10.0 
+        agent.progress += (base_speed * speed_factor * dt * 2.5) / max(edge.length, 1.0)
 
         src = self.sg.nodes[agent.current_node]
         dst = self.sg.nodes[agent.target_node]
@@ -220,10 +416,31 @@ class SimulationEngine:
         agent.y = src.y + (dst.y - src.y) * t
 
         if agent.progress >= 1.0:
-            self.arrival_counters[agent.target_node] = self.arrival_counters.get(agent.target_node, 0) + 1
-            agent.current_node = agent.target_node
+            arrived_at = agent.target_node
+            self.arrival_counters[arrived_at] = self.arrival_counters.get(arrived_at, 0) + 1
+            agent.current_node = arrived_at
             agent.target_node = None
             agent.progress = 0.0
+
+            # ---- Stage 4: EVACUATED — agent exits the arena ----
+            if self.sg.nodes[arrived_at].type == "EXIT":
+                agent.stage = "EVACUATED"
+                self.evacuated_count += 1
+                self.evacuation_log.append({
+                    "agent_id": agent.id,
+                    "exit": arrived_at,
+                    "tick": self.tick_count,
+                    "timestamp": time.time(),
+                })
+                if len(self.evacuation_log) > 500:
+                    self.evacuation_log.pop(0)
+                del self.agents[agent.id]
+                return
+
+            # ---- Stage 1→2 transition: INGRESS agent arrived at seating ----
+            if agent.stage == "INGRESS" and self.sg.nodes[arrived_at].type == "SEATING":
+                agent.stage = "CENTER_DWELL"
+                agent.center_dwell_ticks = int(self.center_dwell_sec / config.SIMULATION_DT)  # 5 ticks @ 0.5s = 2.5s
 
     # ------------------------------------------------------------ occupancy
     def _recompute_occupancy(self):
@@ -252,6 +469,15 @@ class SimulationEngine:
             edge.utilization = min(1.5, live / max(1.0, edge.capacity * 1.5))
 
     # -------------------------------------------------------------- control
+    def update_predictions(self):
+        """Update time-based density predictions across horizons."""
+        for nid, node in self.sg.nodes.items():
+            current_density = node.current_density
+            flow_rate = node.inflow - node.outflow
+            for horizon in config.PREDICTION_HORIZONS:
+                future = current_density + (flow_rate * horizon * 0.1)
+                node.predicted_density[horizon] = max(0.0, round(future, 2))
+
     def _control_cycle(self):
         window_s = config.CONTROL_INTERVAL_TICKS * config.SIMULATION_DT
 
@@ -273,9 +499,7 @@ class SimulationEngine:
         self.edge_transit_counters.clear()
 
         # 2. PREDICT
-        preds = self.predictor.predict_all(self.sg)
-        for nid, node in self.sg.nodes.items():
-            node.predicted_density = preds[nid]
+        self.update_predictions()
 
         # 3. Preventive detectors (surge / counterflow / cascade)
         for nid, node in self.sg.nodes.items():
@@ -297,9 +521,32 @@ class SimulationEngine:
             src_risk = self.sg.nodes[edge.source].risk
             edge.risk = min(1.0, 0.5 * src_risk + 0.5 * edge.utilization)
 
-        # 5. Identify risk location(s) and OPTIMIZE + CONTROL
+        # 5. HAZARD CHECK (50% crowd crush hazard check & +3s penalty)
+        self._check_hazards()
+
+        # 6. Identify risk location(s) and OPTIMIZE + CONTROL
         self._auto_reopen()
         self._evaluate_and_intervene()
+
+    def _check_hazards(self):
+        """Evaluate checkpoints and junctions for crowd crush hazard incidents."""
+        for nid, node in self.sg.nodes.items():
+            if node.type in ("CHECKPOINT", "JUNCTION"):
+                ratio = node.current_people / max(node.capacity * config.HAZARD_CAPACITY_MULTIPLIER, 1.0)
+                if ratio >= config.HAZARD_OCCUPANCY_THRESHOLD:
+                    if self.rng.random() < config.HAZARD_TRIGGER_PROBABILITY:
+                        self.penalty_seconds += config.HAZARD_PENALTY_SECONDS
+                        self.incident_count += 1
+                        self._log_event(
+                            event_type="HAZARD_INCIDENT",
+                            message=f"CRUSH ALERT at {node.id}! +3s Penalty added.",
+                            payload={
+                                "node": node.id,
+                                "penalty": config.HAZARD_PENALTY_SECONDS,
+                                "total_penalties": round(self.penalty_seconds, 1),
+                                "density": round(node.current_density, 2),
+                            }
+                        )
 
     def _log_event(self, event_type: str, message: str, payload: Optional[dict] = None):
         entry = {
@@ -331,6 +578,146 @@ class SimulationEngine:
                                          {"node": nid})
 
     def _evaluate_and_intervene(self):
+        # Enforce tier-specific replan interval (latency)
+        replan_interval = config.AI_REPLAN_INTERVAL_TICKS.get(self.difficulty, 4)
+        if self.difficulty == "super_predictive":
+            replan_interval = 1  # Override to 1 tick (0.5s) for instant reaction time
+
+        if self.tick_count - self.last_intervention_tick < replan_interval:
+            return
+
+        allowed = config.AI_ALLOWED_ACTIONS.get(self.difficulty)
+
+        # ==========================================
+        # 1. UNIVERSAL PROACTIVE METERING (ALL LEVELS)
+        # ==========================================
+        # All AI levels now check the 30% criteria to choke spawn rates.
+        # However, Novice checks it every 5s, Pro every 2s, Master every 0.5s.
+        for nid, node in self.sg.nodes.items():
+            if node.type in ("CHECKPOINT", "JUNCTION"):
+                hazard_ceil = node.capacity * config.HAZARD_CAPACITY_MULTIPLIER
+                # Changed from 45% to 30% criteria for all AI levels
+                if (node.current_people / max(hazard_ceil, 1.0)) >= 0.30:
+                    for entry_id in ("ENTRY-01", "ENTRY-02", "ENTRY-03"):
+                        entry_node = self.sg.nodes.get(entry_id)
+                        if entry_node and entry_node.control_state == "NORMAL":
+                            decision = Decision(
+                                risk_location=nid,
+                                intervention_location=entry_id,
+                                action="HOLD",
+                                duration_sec=3.0,
+                                reason=f"{self.difficulty.upper()} AI: Holding {entry_id} to prevent hazard at {nid}",
+                                confidence=0.99,
+                                risk_without_action=0.95,
+                                risk_with_action=0.05,
+                                safe=True,
+                            )
+                            self.last_intervention_tick = self.tick_count
+                            self.decisions_log.append(decision.to_dict())
+                            if len(self.decisions_log) > 50:
+                                self.decisions_log.pop(0)
+                            if not self.shadow_mode:
+                                self._apply_action(decision)
+                            self._log_event(
+                                "PROACTIVE_METERING",
+                                f"[{self.difficulty.upper()} AI] Proactively holding {entry_id} for 3.0s (30% threshold hit at {nid})",
+                                decision.to_dict(),
+                            )
+                            self.active_decision = decision
+                            return
+
+        # ==========================================
+        # 2. ADVANCED TACTICS (PRO & SUPER PREDICTIVE ONLY)
+        # ==========================================
+        if self.difficulty in ("pro", "super_predictive"):
+            # Multi-Exit Dynamic Load Balancer
+            exit_nodes = [e for e in ("EXIT-01", "EXIT-02", "EXIT-03") if e in self.sg.nodes]
+            if len(exit_nodes) == 3:
+                exit_loads = {e: 0 for e in exit_nodes}
+                for a in self.agents.values():
+                    if a.stage == "EGRESS" and a.destination in exit_loads:
+                        exit_loads[a.destination] += 1
+                for e in exit_nodes:
+                    exit_loads[e] += int(self.sg.nodes[e].current_people)
+
+                total_exit_load = sum(exit_loads.values())
+                if total_exit_load >= 50:
+                    max_e = max(exit_loads, key=exit_loads.get)
+                    min_e = min(exit_loads, key=exit_loads.get)
+                    max_pct = exit_loads[max_e] / total_exit_load
+                    min_pct = exit_loads[min_e] / total_exit_load
+
+                    # Rebalance threshold
+                    if max_pct > 0.38 and min_pct < 0.28:
+                        iv_loc = "JUNCTION-02" if max_e == "EXIT-01" else ("JUNCTION-03" if max_e == "EXIT-03" else "JUNCTION-02")
+                        act = "REDIRECT_LEFT" if min_e < max_e else "REDIRECT_RIGHT"
+                        decision = Decision(
+                            risk_location=max_e,
+                            intervention_location=iv_loc,
+                            action=act,
+                            duration_sec=5.0,
+                            reason=f"AI Tri-Exit Optimizer: Rebalancing flow from {max_e} to {min_e}",
+                            confidence=0.98,
+                            risk_without_action=0.85,
+                            risk_with_action=0.15,
+                            safe=True,
+                        )
+                        self.last_intervention_tick = self.tick_count
+                        self.decisions_log.append(decision.to_dict())
+                        if len(self.decisions_log) > 50:
+                            self.decisions_log.pop(0)
+                        if not self.shadow_mode:
+                            self._apply_action(decision)
+
+                        count_diverted = 0
+                        candidate_nodes = set(nid for nid in self.sg.nodes.keys() if "JUNCTION" in nid or "HUB" in nid or "PLAZA" in nid or "BYPASS" in nid)
+                        
+                        target_diversion = int((exit_loads[max_e] - exit_loads[min_e]) / 2)
+                        
+                        for a in self.agents.values():
+                            if a.stage == "EGRESS" and a.destination == max_e:
+                                if a.current_node in candidate_nodes:
+                                    new_rt = dynamic_astar(self.sg, a.current_node, min_e)
+                                    if new_rt:
+                                        a.destination = min_e
+                                        a.route = new_rt[1:]
+                                        count_diverted += 1
+                                        if count_diverted >= target_diversion or count_diverted >= 250:
+                                            break
+                        
+                        self._log_event("AI_TRI_EXIT_BALANCING", f"[{self.difficulty.upper()} AI] Diverted {count_diverted} agents from {max_e} to {min_e}", decision.to_dict())
+                        self.active_decision = decision
+                        return
+
+        # ==========================================
+        # 3. ANTICIPATORY PREDICTIONS (SUPER PREDICTIVE ONLY)
+        # ==========================================
+        if self.difficulty == "super_predictive":
+            anticipatory = [
+                (nid, n) for nid, n in self.sg.nodes.items()
+                if n.type in ("CHECKPOINT", "JUNCTION") and n.predicted_density.get(30, 0.0) >= 3.0
+            ]
+            if anticipatory:
+                anticipatory.sort(key=lambda kv: kv[1].predicted_density.get(30, 0.0), reverse=True)
+                pred_node_id, pred_node = anticipatory[0]
+                decision = plan_intervention(self.sg, pred_node_id, allowed_actions=allowed, horizon=30)
+
+                if decision.safe and decision.action != "DO_NOTHING" and decision.intervention_location:
+                    self.last_intervention_tick = self.tick_count
+                    self.decisions_log.append(decision.to_dict())
+                    if len(self.decisions_log) > 50:
+                        self.decisions_log.pop(0)
+                    self._log_event(
+                        "PROACTIVE_INTERVENTION",
+                        f"[SUPER-PREDICTIVE] Anticipated bottleneck at {pred_node_id} (+30s). "
+                        f"Proactively deploying {decision.action} at upstream {decision.intervention_location}",
+                        decision.to_dict()
+                    )
+                    if not self.shadow_mode:
+                        self._apply_action(decision)
+                    self.active_decision = decision
+                    return
+
         candidates = [(nid, n) for nid, n in self.sg.nodes.items()
                       if n.type in ("CHECKPOINT", "JUNCTION") and n.control_state == "NORMAL"]
         if not candidates:
@@ -348,7 +735,8 @@ class SimulationEngine:
                                  f"BOTTLENECK PREDICTED at {risk_node_id}. TTC: {int(ttc)} sec",
                                  {"node": risk_node_id, "ttc": ttc})
 
-            decision = plan_intervention(self.sg, risk_node_id)
+            decision = plan_intervention(self.sg, risk_node_id, allowed_actions=allowed, horizon=60)
+            self.last_intervention_tick = self.tick_count
             self.decisions_log.append(decision.to_dict())
             if len(self.decisions_log) > 50:
                 self.decisions_log.pop(0)
@@ -397,13 +785,19 @@ class SimulationEngine:
 
     # -------------------------------------------------------------- scenarios / demo controls
     def inject_crowd_surge(self, gate_id: str = "GATE-01", count: int = 60):
+        from .graph_model import ALIAS_MAP
+        gate_id = ALIAS_MAP.get(gate_id, gate_id)
         for _ in range(count):
-            self._spawn_agent(gate_id, destination=self.rng.choice(
-                [d for d in self._destinations if d.startswith("SEATING")]))
+            seating_dest = self.rng.choice(self._seating_nodes)
+            self._spawn_agent(gate_id, destination=seating_dest, stage="INGRESS")
         self._log_event("SCENARIO_TRIGGER", f"Crowd surge injected at {gate_id} (+{count} people)",
                          {"gate": gate_id, "count": count})
 
     def close_exit(self, exit_id: str = "EXIT-03"):
+        from .graph_model import ALIAS_MAP
+        exit_id = ALIAS_MAP.get(exit_id, exit_id)
+        if exit_id in self.sg.nodes:
+            self.sg.nodes[exit_id].control_state = "BLOCK"
         for pred in self.sg.predecessors(exit_id):
             edge = self.sg.edges.get((pred, exit_id))
             if edge:
@@ -411,6 +805,17 @@ class SimulationEngine:
                 edge.control_state = "BLOCK"
         self._log_event("SCENARIO_TRIGGER", f"{exit_id} CLOSED - recalculating downstream routes",
                          {"exit": exit_id})
+        # Recalculate routes for any agents targeting this closed exit
+        active_exits = self._get_active_exits()
+        if active_exits:
+            for agent in self.agents.values():
+                if agent.stage == "EGRESS" and agent.destination == exit_id:
+                    alt_exit = self.rng.choice(active_exits)
+                    start_at = agent.target_node if agent.target_node else agent.current_node
+                    rerouted = dynamic_astar(self.sg, start_at, alt_exit)
+                    if rerouted:
+                        agent.destination = alt_exit
+                        agent.route = rerouted[1:]
         for nid in self.sg.predecessors(exit_id):
             chain = predict_cascade(self.sg, nid)
             if chain:
@@ -418,6 +823,10 @@ class SimulationEngine:
                                  {"chain": chain})
 
     def reopen_exit(self, exit_id: str = "EXIT-03"):
+        from .graph_model import ALIAS_MAP
+        exit_id = ALIAS_MAP.get(exit_id, exit_id)
+        if exit_id in self.sg.nodes:
+            self.sg.nodes[exit_id].control_state = "NORMAL"
         for pred in self.sg.predecessors(exit_id):
             edge = self.sg.edges.get((pred, exit_id))
             if edge:
@@ -426,14 +835,18 @@ class SimulationEngine:
         self._log_event("SCENARIO_TRIGGER", f"{exit_id} reopened", {"exit": exit_id})
 
     def trigger_counterflow(self):
-        seating_c_agents = [a for a in self.agents.values() if a.current_node == "SEATING-C"][:40]
+        from .graph_model import ALIAS_MAP
+        plaza_east = ALIAS_MAP.get("SEATING-C", "PLAZA-EAST")
+        entry_1 = ALIAS_MAP.get("GATE-01", "ENTRY-01")
+        seating_c_agents = [a for a in self.agents.values() if a.current_node in (plaza_east, "SEATING-C", "PLAZA-EAST")][:40]
         for agent in seating_c_agents:
-            agent.destination = "GATE-01"
-            route = dynamic_astar(self.sg, agent.current_node, "GATE-01")
+            agent.stage = "EGRESS"
+            agent.destination = entry_1
+            route = dynamic_astar(self.sg, agent.current_node, entry_1)
             if route:
                 agent.route = route[1:]
         for _ in range(40):
-            self._spawn_agent("GATE-01", destination="SEATING-C")
+            self._spawn_agent(entry_1, destination=plaza_east, stage="INGRESS")
         self._log_event("SCENARIO_TRIGGER", "Counterflow event triggered: two groups on a collision corridor",
                          {})
 
@@ -466,7 +879,12 @@ class SimulationEngine:
         return path
 
     def reset(self):
-        self.__init__(on_event=self.on_event, on_state=self.on_state)
+        self.__init__(on_event=self.on_event, on_state=self.on_state,
+                      seed=self.seed, arena_id=self.arena_id,
+                      target_evacuation=self.target_evacuation,
+                      difficulty=self.difficulty,
+                      center_dwell_sec=self.center_dwell_sec,
+                      level=getattr(self, "level", 2))
         self._log_event("SYSTEM", "Simulation reset", {})
 
     # -------------------------------------------------------------- snapshot
@@ -482,7 +900,8 @@ class SimulationEngine:
         graph_dict = self.sg.to_dict()
         particles = [
             {"id": a.id, "x": round(a.x, 1), "y": round(a.y, 1), "group_id": a.group_id,
-             "ghost": a.ghost, "destination": a.destination, "route": a.route}
+             "ghost": a.ghost, "destination": a.destination, "route": a.route,
+             "stage": a.stage, "is_congested": getattr(a, "is_congested", False)}
             for a in self.agents.values()
         ]
         critical_nodes = [n.id for n in self.sg.nodes.values() if band_for(n.risk) == "CRITICAL"]
@@ -500,10 +919,24 @@ class SimulationEngine:
             "predicted_bottlenecks": len(predicted_bottlenecks),
             "active_interventions": len(active_interventions),
             "evacuation_readiness": round(max(0.0, 1.0 - self.network_risk()), 3),
+            # ---- Arena lifecycle counters ----
+            "evacuated_count": self.evacuated_count,
+            "target_evacuation": self.target_evacuation,
+            "penalty_seconds": round(self.penalty_seconds, 1),
+            "incident_count": self.incident_count,
+            "total_spawned": self.total_spawned,
+            "difficulty": self.difficulty,
         }
 
         return {
             "type": "crowd_state",
+            "arena_id": self.arena_id,
+            "difficulty": self.difficulty,
+            "level": getattr(self, "level", 2),
+            "evacuated_count": self.evacuated_count,
+            "target_evacuation": self.target_evacuation,
+            "penalty_seconds": round(self.penalty_seconds, 1),
+            "incident_count": self.incident_count,
             "tick": self.tick_count,
             "timestamp": time.time(),
             "graph": graph_dict,
