@@ -18,7 +18,7 @@ import time
 import uuid
 from typing import Optional
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -613,12 +613,12 @@ _custom_map_path = os.path.join(_maps_dir, "custom_level.json")
 # ---------------------------------------------------------------------------
 # Admin Map Editor Routes (Multi-Level API)
 # ---------------------------------------------------------------------------
-@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin")
 async def serve_admin(request: Request):
     """Serve the visual map editor tool."""
     admin_html = os.path.join(_frontend_dir, "admin.html")
-    with open(admin_html) as f:
-        return HTMLResponse(content=f.read())
+    return FileResponse(admin_html)
+
 
 
 @app.get("/api/admin/template/{level:int}")
@@ -640,7 +640,7 @@ async def get_admin_map_by_level(level: int):
     if not os.path.exists(level_path):
         # Backward-compatibility fallback for level 1
         if level == 1 and os.path.exists(_custom_map_path):
-            with open(_custom_map_path) as f:
+            with open(_custom_map_path, encoding="utf-8") as f:
                 data = json.load(f)
                 data["custom"] = True
                 data["level"] = 1
@@ -649,7 +649,7 @@ async def get_admin_map_by_level(level: int):
             status_code=404,
             content={"custom": False, "level": level, "error": f"No custom map for level {level}"}
         )
-    with open(level_path) as f:
+    with open(level_path, encoding="utf-8") as f:
         data = json.load(f)
         data["custom"] = True
         data["level"] = level
@@ -664,6 +664,18 @@ class AdminMapPayload(BaseModel):
     backgroundImage: Optional[str] = None
 
 
+@app.post("/api/admin/upload-bg/{level:int}")
+async def upload_admin_background(level: int, file: UploadFile = File(...)):
+    """Upload custom background map image for a given level and save into frontend/."""
+    os.makedirs(_frontend_dir, exist_ok=True)
+    filename = f"custom_bg_level_{level}.png"
+    target_path = os.path.join(_frontend_dir, filename)
+    contents = await file.read()
+    with open(target_path, "wb") as f:
+        f.write(contents)
+    return {"ok": True, "path": filename}
+
+
 @app.post("/api/admin/map/{level:int}")
 async def save_admin_map_by_level(level: int, payload: AdminMapPayload):
     """Persist custom map state to backend/maps/level_{level}.json."""
@@ -672,12 +684,12 @@ async def save_admin_map_by_level(level: int, payload: AdminMapPayload):
     data = payload.model_dump()
     data["custom"] = True
     data["level"] = level
-    with open(level_path, "w") as f:
+    with open(level_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     # If saving Level 1, also keep custom_level.json in sync for backward compatibility
     if level == 1:
-        with open(_custom_map_path, "w") as f:
+        with open(_custom_map_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     return {"ok": True, "level": level, "path": level_path, "nodes": len(data["nodes"]), "edges": len(data["edges"])}

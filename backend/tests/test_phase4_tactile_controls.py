@@ -18,7 +18,7 @@ FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 
 def test_phase4_frontend_dom_elements():
     """Verify index.html contains tactileLegend and safetyToast for zero-toolbar design."""
-    with open(os.path.join(FRONTEND_DIR, "index.html")) as f:
+    with open(os.path.join(FRONTEND_DIR, "index.html"), encoding="utf-8") as f:
         html = f.read()
 
     assert 'id="tactileLegend"' in html
@@ -29,7 +29,7 @@ def test_phase4_frontend_dom_elements():
 
 def test_phase4_styles_classes():
     """Verify styles.css includes tactile-legend and safety-toast shake styles."""
-    with open(os.path.join(FRONTEND_DIR, "styles.css")) as f:
+    with open(os.path.join(FRONTEND_DIR, "styles.css"), encoding="utf-8") as f:
         css = f.read()
 
     assert ".tactile-legend" in css

@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CrowdShield — Visual Map Editor</title>
+  <link rel="icon" type="image/png" href="fav.png" />
+  <link rel="shortcut icon" type="image/png" href="fav.png" />
+  <link rel="apple-touch-icon" href="fav.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -42,6 +45,24 @@
           </div>
           <div class="level-status-pill" id="levelStatusPill">
             Status: <span id="levelStatusText" class="status-badge">Default Template</span>
+          </div>
+        </section>
+
+        <!-- BACKGROUND MAP -->
+        <section class="tool-section" id="bgMapSection">
+          <h3 class="section-title">BACKGROUND MAP</h3>
+          <div class="bg-upload-container">
+            <input type="file" id="bgImageUpload" accept="image/*" style="display: none;" />
+            <button id="btnChooseBgImage" type="button" class="btn btn-secondary btn-block">
+              📷 Choose Background Image
+            </button>
+            <div class="bg-preview-wrap" id="bgPreviewWrap">
+              <img id="bgThumbPreview" class="bg-thumb-preview" alt="Active Background" src="level1.png" />
+              <span id="bgFileName" class="bg-file-name text-dim">level1.png</span>
+            </div>
+            <button id="btnResetBgImage" type="button" class="btn btn-dark btn-block btn-sm" title="Restore level default background">
+              ↺ Reset Map Background
+            </button>
           </div>
         </section>
 

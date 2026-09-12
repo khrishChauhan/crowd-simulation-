@@ -52,11 +52,16 @@ def test_all_demo_scenarios_run_without_crashing():
 
 
 def test_reset_restores_baseline_population():
+    # Level 2 (default) seeds 320 agents
     sim = SimulationEngine()
     sim.inject_crowd_surge("GATE-01", 100)
-    assert len(sim.agents) > 220
+    assert len(sim.agents) > 320
     sim.reset()
-    assert 200 <= len(sim.agents) <= 240
+    assert 300 <= len(sim.agents) <= 340
+
+    # Level 1 seeds 250 agents
+    sim1 = SimulationEngine(level=1)
+    assert 240 <= len(sim1.agents) <= 260
 
 
 def test_emergency_corridor_returns_a_path_when_feasible():
@@ -72,3 +77,61 @@ def test_snapshot_is_json_serialisable_shape():
     for key in ("graph", "particles", "cameras", "metrics", "mode"):
         assert key in snap
     assert snap["mode"] == "DEMO_MODE"
+    if snap["particles"]:
+        p = snap["particles"][0]
+        assert "is_congested" in p
+        assert "is_slow" in p
+
+
+def test_strict_binary_two_speed_system():
+    sim = SimulationEngine()
+    # Pick a valid edge
+    edge_key = next(iter(sim.sg.edges.keys()))
+    edge = sim.sg.edges[edge_key]
+    u, v = edge.source, edge.target
+    rated_capacity = getattr(edge, "capacity", 0.0)
+    if rated_capacity and rated_capacity > 0:
+        threshold_x = min(config.NPC_DEFAULT_CONGESTION_THRESHOLD, config.NPC_CONGESTION_CAPACITY_RATIO * rated_capacity)
+    else:
+        threshold_x = config.NPC_DEFAULT_CONGESTION_THRESHOLD
+
+    # Case 1: Below threshold X -> FAST (10.0), is_congested = False
+    sim.edge_live_count[(u, v)] = max(0, int(threshold_x) - 1)
+    agent = next(iter(sim.agents.values()))
+    agent.current_node = u
+    agent.target_node = v
+    agent.progress = 0.0
+    agent.is_congested = False
+    dt = config.SIMULATION_DT
+    expected_fast_delta = (config.NPC_SPEED_FAST * dt * 2.5) / max(edge.length, 1.0)
+
+    sim._advance_on_edge(agent, dt)
+    assert not agent.is_congested
+    assert math.isclose(agent.progress, expected_fast_delta, rel_tol=1e-5)
+
+    # Case 2: At or above threshold X -> SLOW (3.0), is_congested = True
+    sim.edge_live_count[(u, v)] = max(int(threshold_x), 8) + 2
+    agent.current_node = u
+    agent.target_node = v
+    agent.progress = 0.0
+    agent.is_congested = False
+    expected_slow_delta = (config.NPC_SPEED_SLOW * dt * 2.5) / max(edge.length, 1.0)
+
+    sim._advance_on_edge(agent, dt)
+    assert agent.is_congested
+    assert math.isclose(agent.progress, expected_slow_delta, rel_tol=1e-5)
+
+
+def test_spawn_boost_and_earlier_congestion_threshold():
+    sim1 = SimulationEngine(level=1)
+    assert len(sim1.agents) == 250
+    sim2 = SimulationEngine(level=2)
+    assert len(sim2.agents) == 320
+    sim3 = SimulationEngine(level=3)
+    assert len(sim3.agents) == 320
+
+    # Verify trickle spawn budget is within [3, 10]
+    sim1.spawn_timer_sec = 0.0
+    sim1.step()
+    assert 2 <= sim1.spawn_budget_this_second <= 10
+

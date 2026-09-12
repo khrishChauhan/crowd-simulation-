@@ -140,7 +140,16 @@ AI_ALLOWED_ACTIONS = {
 }
 
 # ---------------------------------------------------------------------------
+# Strict Binary 2-Speed Simulation System
+# ---------------------------------------------------------------------------
+NPC_SPEED_FAST = 10.0                     # 100% of base speed
+NPC_SPEED_SLOW = 3.0                      # 30% of base speed
+NPC_CONGESTION_CAPACITY_RATIO = 0.45      # 45% of edge capacity
+NPC_DEFAULT_CONGESTION_THRESHOLD = 8.0    # 8 concurrent agents on a corridor segment
+
+# ---------------------------------------------------------------------------
 # Misc
 # ---------------------------------------------------------------------------
 DB_PATH = "backend/crowdshield.db"
 WEBSOCKET_BROADCAST_HZ = 2.0   # state pushes per second to frontend
+

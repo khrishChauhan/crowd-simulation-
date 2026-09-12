@@ -22,7 +22,7 @@ def test_frontend_files_exist():
 
 def test_index_html_dual_arena_elements():
     """index.html must contain dual canvases, race HUD, tug-of-war, and control IDs."""
-    with open(os.path.join(FRONTEND_DIR, "index.html")) as f:
+    with open(os.path.join(FRONTEND_DIR, "index.html"), encoding="utf-8") as f:
         html = f.read()
 
     required_ids = [
@@ -43,7 +43,7 @@ def test_index_html_dual_arena_elements():
 
 def test_styles_css_classes():
     """styles.css must include split-screen grid, tug-of-war track, and hazard pulse animation."""
-    with open(os.path.join(FRONTEND_DIR, "styles.css")) as f:
+    with open(os.path.join(FRONTEND_DIR, "styles.css"), encoding="utf-8") as f:
         css = f.read()
 
     assert ".dual-arena-grid" in css
@@ -55,7 +55,7 @@ def test_styles_css_classes():
 
 def test_app_js_features():
     """app.js must implement dual canvas rendering, 4-stage lifecycle, and hazard popouts."""
-    with open(os.path.join(FRONTEND_DIR, "app.js")) as f:
+    with open(os.path.join(FRONTEND_DIR, "app.js"), encoding="utf-8") as f:
         js = f.read()
 
     # Dual canvas contexts
@@ -101,3 +101,36 @@ def test_synchronized_match_controls():
     reset_sim()
     assert player_sim.tick_count == 0
     assert ai_sim.tick_count == 0
+
+
+@pytest.mark.anyio
+async def test_admin_background_upload_and_level2():
+    """Verify level2.png exists, upload endpoint functions, and Level 2 map loads."""
+    from app.main import upload_admin_background, save_admin_map_by_level, get_admin_map_by_level, AdminMapPayload
+    from fastapi import UploadFile
+    import io
+
+    # 1. level2.png must exist in frontend
+    lvl2_path = os.path.join(FRONTEND_DIR, "level2.png")
+    assert os.path.isfile(lvl2_path), "frontend/level2.png does not exist"
+
+    # 2. Upload endpoint test
+    fake_file = UploadFile(filename="test_upload.png", file=io.BytesIO(b"\x89PNG\r\n\x1a\ntestdata"))
+    res = await upload_admin_background(level=2, file=fake_file)
+    assert res["ok"] is True
+    assert res["path"] == "custom_bg_level_2.png"
+
+    uploaded_path = os.path.join(FRONTEND_DIR, "custom_bg_level_2.png")
+    assert os.path.isfile(uploaded_path)
+    # Clean up created upload file
+    try:
+        os.remove(uploaded_path)
+    except OSError:
+        pass
+
+    # 3. Verify Level 2 map file loads
+    lvl2_map = await get_admin_map_by_level(2)
+    assert "nodes" in lvl2_map
+    assert "edges" in lvl2_map
+    assert len(lvl2_map["nodes"]) > 0
+

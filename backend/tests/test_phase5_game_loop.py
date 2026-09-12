@@ -16,13 +16,19 @@ FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 
 def test_phase5_frontend_dom_elements():
     """Verify index.html contains all Phase 5 elements: Countdown, Level Selector pills, and Scorecard Modal."""
-    with open(os.path.join(FRONTEND_DIR, "index.html")) as f:
+    with open(os.path.join(FRONTEND_DIR, "index.html"), encoding="utf-8") as f:
         html = f.read()
 
     # Pre-Match Countdown Overlay
     assert 'id="countdownOverlay"' in html
+    assert 'id="countdownImg"' in html
+    assert 'id="countdownFav"' in html
     assert 'id="countdownText"' in html
     assert 'id="countdownSub"' in html
+
+    # Countdown graphic assets exist
+    for img_name in ["1.png", "2.png", "3.png", "fav.png"]:
+        assert os.path.isfile(os.path.join(FRONTEND_DIR, img_name)), f"Missing {img_name}"
 
     # Level Selector Navigation
     assert 'id="levelNav"' in html
@@ -54,11 +60,13 @@ def test_phase5_frontend_dom_elements():
 
 def test_phase5_frontend_styles():
     """Verify styles.css contains animations and responsive classes for Countdown and Scorecard."""
-    with open(os.path.join(FRONTEND_DIR, "styles.css")) as f:
+    with open(os.path.join(FRONTEND_DIR, "styles.css"), encoding="utf-8") as f:
         css = f.read()
 
     assert ".countdown-overlay" in css
     assert ".countdown-number" in css
+    assert ".countdown-img" in css
+    assert "@keyframes countdownScaleIn" in css
     assert "@keyframes countPulse" in css
     assert ".modal-backdrop" in css
     assert ".scorecard-card" in css
@@ -71,10 +79,11 @@ def test_phase5_frontend_styles():
 
 def test_phase5_app_js_game_loop():
     """Verify app.js includes countdown sequence, level loading, win/loss evaluator, and star calculator."""
-    with open(os.path.join(FRONTEND_DIR, "app.js")) as f:
+    with open(os.path.join(FRONTEND_DIR, "app.js"), encoding="utf-8") as f:
         js = f.read()
 
     assert "startPreMatchCountdown" in js
+    assert "COUNTDOWN_IMAGE_SRCS" in js
     assert "loadLevel" in js
     assert "LEVEL_CONFIGS" in js
     assert "showScorecard" in js

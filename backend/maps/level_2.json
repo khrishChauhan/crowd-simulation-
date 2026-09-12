@@ -3,1733 +3,857 @@
     {
       "id": "ENTRY-01",
       "name": "Entry 1",
-      "x": 220.0,
-      "y": 80.0,
+      "x": 85,
+      "y": 148,
       "type": "GATE",
-      "capacity": 6.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
+      "capacity": 6,
+      "current_people": 0,
+      "current_density": 0,
       "predicted_density": {},
-      "risk": 0.0,
+      "risk": 0,
       "risk_breakdown": {},
       "control_state": "NORMAL",
       "control_reason": null,
       "camera_id": null,
       "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
+      "inflow": 0,
+      "outflow": 0
     },
     {
       "id": "ENTRY-02",
       "name": "Entry 2",
-      "x": 500.0,
-      "y": 80.0,
+      "x": 742,
+      "y": 63,
       "type": "GATE",
-      "capacity": 6.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
+      "capacity": 6,
+      "current_people": 0,
+      "current_density": 0,
       "predicted_density": {},
-      "risk": 0.0,
+      "risk": 0,
       "risk_breakdown": {},
       "control_state": "NORMAL",
       "control_reason": null,
       "camera_id": null,
       "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "ENTRY-03",
-      "name": "Entry 3",
-      "x": 780.0,
-      "y": 80.0,
-      "type": "GATE",
-      "capacity": 6.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "HUB-01",
-      "name": "Hub 01",
-      "x": 200.0,
-      "y": 220.0,
-      "type": "CHECKPOINT",
-      "capacity": 5.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": "CAM-01",
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "HUB-02",
-      "name": "Hub 02",
-      "x": 400.0,
-      "y": 220.0,
-      "type": "CHECKPOINT",
-      "capacity": 5.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": "CAM-02",
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "HUB-03",
-      "name": "Hub 03",
-      "x": 600.0,
-      "y": 220.0,
-      "type": "CHECKPOINT",
-      "capacity": 5.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": "CAM-03",
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "HUB-04",
-      "name": "Hub 04",
-      "x": 800.0,
-      "y": 220.0,
-      "type": "CHECKPOINT",
-      "capacity": 5.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": "CAM-04",
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "BYPASS-LEFT",
-      "name": "Bypass Left",
-      "x": 120.0,
-      "y": 360.0,
-      "type": "CHECKPOINT",
-      "capacity": 5.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "BYPASS-RIGHT",
-      "name": "Bypass Right",
-      "x": 880.0,
-      "y": 360.0,
-      "type": "CHECKPOINT",
-      "capacity": 5.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "PLAZA-WEST",
-      "name": "West Plaza",
-      "x": 340.0,
-      "y": 360.0,
-      "type": "SEATING",
-      "capacity": 18.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "PLAZA-CENTER",
-      "name": "Center Plaza",
-      "x": 500.0,
-      "y": 360.0,
-      "type": "SEATING",
-      "capacity": 18.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": "CAM-05",
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "PLAZA-EAST",
-      "name": "East Plaza",
-      "x": 660.0,
-      "y": 360.0,
-      "type": "SEATING",
-      "capacity": 18.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "JUNCTION-01",
-      "name": "Junction 01",
-      "x": 220.0,
-      "y": 500.0,
-      "type": "JUNCTION",
-      "capacity": 8.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "JUNCTION-02",
-      "name": "Junction 02",
-      "x": 420.0,
-      "y": 500.0,
-      "type": "JUNCTION",
-      "capacity": 8.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "JUNCTION-03",
-      "name": "Junction 03",
-      "x": 580.0,
-      "y": 500.0,
-      "type": "JUNCTION",
-      "capacity": 8.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
-    },
-    {
-      "id": "JUNCTION-04",
-      "name": "Junction 04",
-      "x": 780.0,
-      "y": 500.0,
-      "type": "JUNCTION",
-      "capacity": 8.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
+      "inflow": 0,
+      "outflow": 0
     },
     {
       "id": "EXIT-01",
       "name": "Exit 01",
-      "x": 220.0,
-      "y": 620.0,
+      "x": 443,
+      "y": 816,
       "type": "EXIT",
-      "capacity": 7.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
+      "capacity": 7,
+      "current_people": 0,
+      "current_density": 0,
       "predicted_density": {},
-      "risk": 0.0,
+      "risk": 0,
       "risk_breakdown": {},
       "control_state": "NORMAL",
       "control_reason": null,
       "camera_id": null,
       "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
+      "inflow": 0,
+      "outflow": 0
     },
     {
       "id": "EXIT-02",
       "name": "Exit 02",
-      "x": 500.0,
-      "y": 620.0,
+      "x": 1202,
+      "y": 746,
       "type": "EXIT",
-      "capacity": 7.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
+      "capacity": 7,
+      "current_people": 0,
+      "current_density": 0,
       "predicted_density": {},
-      "risk": 0.0,
+      "risk": 0,
       "risk_breakdown": {},
       "control_state": "NORMAL",
       "control_reason": null,
       "camera_id": null,
       "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
+      "inflow": 0,
+      "outflow": 0
     },
     {
-      "id": "EXIT-03",
-      "name": "Exit 03",
-      "x": 780.0,
-      "y": 620.0,
-      "type": "EXIT",
-      "capacity": 7.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
+      "id": "CK-01",
+      "name": "CK-01",
+      "x": 92,
+      "y": 209,
+      "type": "CHECKPOINT"
     },
     {
-      "id": "EMG-01",
-      "name": "Emergency Point",
-      "x": 500.0,
-      "y": 30.0,
-      "type": "EMERGENCY",
-      "capacity": 4.0,
-      "current_people": 0.0,
-      "current_density": 0.0,
-      "predicted_density": {},
-      "risk": 0.0,
-      "risk_breakdown": {},
-      "control_state": "NORMAL",
-      "control_reason": null,
-      "camera_id": null,
-      "camera_online": true,
-      "inflow": 0.0,
-      "outflow": 0.0
+      "id": "CK-02",
+      "name": "CK-02",
+      "x": 421,
+      "y": 197,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-03",
+      "name": "CK-03",
+      "x": 337,
+      "y": 198,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-04",
+      "name": "CK-04",
+      "x": 439,
+      "y": 394,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-05",
+      "name": "CK-05",
+      "x": 445,
+      "y": 432,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-06",
+      "name": "CK-06",
+      "x": 437,
+      "y": 543,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-07",
+      "name": "CK-07",
+      "x": 442,
+      "y": 596,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-08",
+      "name": "CK-08",
+      "x": 439,
+      "y": 723,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-09",
+      "name": "CK-09",
+      "x": 342,
+      "y": 400,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-10",
+      "name": "CK-10",
+      "x": 132,
+      "y": 401,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-11",
+      "name": "CK-11",
+      "x": 137,
+      "y": 532,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-12",
+      "name": "CK-12",
+      "x": 228,
+      "y": 539,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-13",
+      "name": "CK-13",
+      "x": 228,
+      "y": 644,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-14",
+      "name": "CK-14",
+      "x": 287,
+      "y": 647,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-15",
+      "name": "CK-15",
+      "x": 346,
+      "y": 648,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-16",
+      "name": "CK-16",
+      "x": 347,
+      "y": 537,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-17",
+      "name": "CK-17",
+      "x": 295,
+      "y": 715,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-18",
+      "name": "CK-18",
+      "x": 139,
+      "y": 710,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-19",
+      "name": "CK-19",
+      "x": 574,
+      "y": 594,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-20",
+      "name": "CK-20",
+      "x": 570,
+      "y": 541,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-21",
+      "name": "CK-21",
+      "x": 683,
+      "y": 539,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-22",
+      "name": "CK-22",
+      "x": 807,
+      "y": 535,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-23",
+      "name": "CK-23",
+      "x": 807,
+      "y": 443,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-24",
+      "name": "CK-24",
+      "x": 758,
+      "y": 433,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-25",
+      "name": "CK-25",
+      "x": 687,
+      "y": 436,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-26",
+      "name": "CK-26",
+      "x": 589,
+      "y": 435,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-27",
+      "name": "CK-27",
+      "x": 524,
+      "y": 427,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-28",
+      "name": "CK-28",
+      "x": 422,
+      "y": 146,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-29",
+      "name": "CK-29",
+      "x": 517,
+      "y": 140,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-30",
+      "name": "CK-30",
+      "x": 581,
+      "y": 136,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-31",
+      "name": "CK-31",
+      "x": 734,
+      "y": 139,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-32",
+      "name": "CK-32",
+      "x": 584,
+      "y": 237,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-33",
+      "name": "CK-33",
+      "x": 517,
+      "y": 234,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-34",
+      "name": "CK-34",
+      "x": 434,
+      "y": 243,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-35",
+      "name": "CK-35",
+      "x": 738,
+      "y": 237,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-36",
+      "name": "CK-36",
+      "x": 827,
+      "y": 246,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-37",
+      "name": "CK-37",
+      "x": 833,
+      "y": 321,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-38",
+      "name": "CK-38",
+      "x": 972,
+      "y": 325,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-39",
+      "name": "CK-39",
+      "x": 966,
+      "y": 242,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-40",
+      "name": "CK-40",
+      "x": 977,
+      "y": 428,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-41",
+      "name": "CK-41",
+      "x": 977,
+      "y": 545,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-42",
+      "name": "CK-42",
+      "x": 986,
+      "y": 631,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-43",
+      "name": "CK-43",
+      "x": 754,
+      "y": 640,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-44",
+      "name": "CK-44",
+      "x": 758,
+      "y": 714,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-45",
+      "name": "CK-45",
+      "x": 843,
+      "y": 727,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-46",
+      "name": "CK-46",
+      "x": 1092,
+      "y": 727,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-47",
+      "name": "CK-47",
+      "x": 1089,
+      "y": 642,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-48",
+      "name": "CK-48",
+      "x": 958,
+      "y": 122,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-49",
+      "name": "CK-49",
+      "x": 763,
+      "y": 357,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-50",
+      "name": "CK-50",
+      "x": 688,
+      "y": 358,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-51",
+      "name": "CK-51",
+      "x": 605,
+      "y": 356,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-52",
+      "name": "CK-52",
+      "x": 525,
+      "y": 358,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-53",
+      "name": "CK-53",
+      "x": 442,
+      "y": 356,
+      "type": "CHECKPOINT"
+    },
+    {
+      "id": "CK-54",
+      "name": "CK-54",
+      "x": 825,
+      "y": 354,
+      "type": "CHECKPOINT"
     }
   ],
   "edges": [
     {
-      "source": "ENTRY-01",
-      "target": "HUB-01",
-      "length": 35.35533905932738,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.2,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "source": "CK-01",
+      "target": "CK-03"
     },
     {
-      "source": "HUB-01",
-      "target": "ENTRY-01",
-      "length": 35.35533905932738,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.2,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "source": "CK-02",
+      "target": "CK-34"
     },
     {
-      "source": "ENTRY-01",
-      "target": "HUB-02",
-      "length": 57.0087712549569,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 43.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "source": "CK-34",
+      "target": "CK-53"
     },
     {
-      "source": "HUB-02",
-      "target": "ENTRY-01",
-      "length": 57.0087712549569,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 43.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "source": "CK-53",
+      "target": "CK-04"
+    },
+    {
+      "source": "CK-04",
+      "target": "CK-05"
+    },
+    {
+      "source": "CK-05",
+      "target": "CK-06"
+    },
+    {
+      "source": "CK-06",
+      "target": "CK-07"
+    },
+    {
+      "source": "CK-07",
+      "target": "CK-08"
+    },
+    {
+      "source": "CK-08",
+      "target": "EXIT-01"
+    },
+    {
+      "source": "CK-17",
+      "target": "CK-08"
+    },
+    {
+      "source": "CK-18",
+      "target": "CK-17"
+    },
+    {
+      "source": "CK-13",
+      "target": "CK-14"
+    },
+    {
+      "source": "CK-14",
+      "target": "CK-17"
+    },
+    {
+      "source": "CK-15",
+      "target": "CK-14"
+    },
+    {
+      "source": "CK-11",
+      "target": "CK-18"
+    },
+    {
+      "source": "CK-11",
+      "target": "CK-12"
+    },
+    {
+      "source": "CK-12",
+      "target": "CK-16"
+    },
+    {
+      "source": "CK-16",
+      "target": "CK-06"
+    },
+    {
+      "source": "CK-10",
+      "target": "CK-11"
+    },
+    {
+      "source": "CK-10",
+      "target": "CK-09"
+    },
+    {
+      "source": "CK-09",
+      "target": "CK-04"
+    },
+    {
+      "source": "CK-01",
+      "target": "CK-10"
+    },
+    {
+      "source": "CK-03",
+      "target": "CK-09"
+    },
+    {
+      "source": "CK-53",
+      "target": "CK-52"
+    },
+    {
+      "source": "CK-52",
+      "target": "CK-51"
+    },
+    {
+      "source": "CK-51",
+      "target": "CK-50"
+    },
+    {
+      "source": "CK-50",
+      "target": "CK-49"
+    },
+    {
+      "source": "CK-49",
+      "target": "CK-54"
+    },
+    {
+      "source": "CK-05",
+      "target": "CK-27"
+    },
+    {
+      "source": "CK-27",
+      "target": "CK-26"
+    },
+    {
+      "source": "CK-26",
+      "target": "CK-20"
+    },
+    {
+      "source": "CK-51",
+      "target": "CK-26"
+    },
+    {
+      "source": "CK-52",
+      "target": "CK-27"
+    },
+    {
+      "source": "CK-50",
+      "target": "CK-25"
+    },
+    {
+      "source": "CK-26",
+      "target": "CK-25"
+    },
+    {
+      "source": "CK-25",
+      "target": "CK-24"
+    },
+    {
+      "source": "CK-49",
+      "target": "CK-24"
+    },
+    {
+      "source": "CK-54",
+      "target": "CK-23"
+    },
+    {
+      "source": "CK-24",
+      "target": "CK-23"
+    },
+    {
+      "source": "CK-23",
+      "target": "CK-22"
+    },
+    {
+      "source": "CK-20",
+      "target": "CK-21"
+    },
+    {
+      "source": "CK-21",
+      "target": "CK-22"
+    },
+    {
+      "source": "CK-06",
+      "target": "CK-20"
+    },
+    {
+      "source": "CK-07",
+      "target": "CK-19"
+    },
+    {
+      "source": "CK-20",
+      "target": "CK-19"
+    },
+    {
+      "source": "CK-22",
+      "target": "CK-41"
+    },
+    {
+      "source": "CK-23",
+      "target": "CK-40"
+    },
+    {
+      "source": "CK-37",
+      "target": "CK-38"
+    },
+    {
+      "source": "CK-38",
+      "target": "CK-40"
+    },
+    {
+      "source": "CK-37",
+      "target": "CK-54"
+    },
+    {
+      "source": "CK-36",
+      "target": "CK-37"
+    },
+    {
+      "source": "CK-35",
+      "target": "CK-36"
+    },
+    {
+      "source": "CK-36",
+      "target": "CK-39"
+    },
+    {
+      "source": "CK-39",
+      "target": "CK-38"
+    },
+    {
+      "source": "CK-40",
+      "target": "CK-41"
+    },
+    {
+      "source": "CK-41",
+      "target": "CK-42"
+    },
+    {
+      "source": "CK-42",
+      "target": "CK-47"
+    },
+    {
+      "source": "CK-42",
+      "target": "CK-43"
+    },
+    {
+      "source": "CK-43",
+      "target": "CK-44"
+    },
+    {
+      "source": "CK-44",
+      "target": "CK-45"
+    },
+    {
+      "source": "CK-45",
+      "target": "CK-46"
+    },
+    {
+      "source": "CK-47",
+      "target": "CK-46"
+    },
+    {
+      "source": "CK-46",
+      "target": "EXIT-02"
+    },
+    {
+      "source": "CK-08",
+      "target": "CK-44"
+    },
+    {
+      "source": "CK-03",
+      "target": "CK-02"
+    },
+    {
+      "source": "CK-28",
+      "target": "CK-02"
+    },
+    {
+      "source": "CK-29",
+      "target": "CK-28"
+    },
+    {
+      "source": "CK-30",
+      "target": "CK-29"
+    },
+    {
+      "source": "CK-31",
+      "target": "CK-30"
+    },
+    {
+      "source": "CK-29",
+      "target": "CK-33"
+    },
+    {
+      "source": "CK-30",
+      "target": "CK-32"
+    },
+    {
+      "source": "CK-31",
+      "target": "CK-35"
+    },
+    {
+      "source": "CK-32",
+      "target": "CK-35"
+    },
+    {
+      "source": "CK-33",
+      "target": "CK-32"
+    },
+    {
+      "source": "CK-33",
+      "target": "CK-34"
     },
     {
       "source": "ENTRY-02",
-      "target": "HUB-02",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "target": "CK-31"
     },
     {
-      "source": "HUB-02",
-      "target": "ENTRY-02",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "source": "CK-31",
+      "target": "CK-48"
     },
     {
-      "source": "ENTRY-02",
-      "target": "HUB-03",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-03",
-      "target": "ENTRY-02",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "ENTRY-03",
-      "target": "HUB-03",
-      "length": 57.0087712549569,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 43.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-03",
-      "target": "ENTRY-03",
-      "length": 57.0087712549569,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 43.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "ENTRY-03",
-      "target": "HUB-04",
-      "length": 35.35533905932738,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.2,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-04",
-      "target": "ENTRY-03",
-      "length": 35.35533905932738,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.2,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-01",
-      "target": "HUB-02",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-02",
-      "target": "HUB-01",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-02",
-      "target": "HUB-03",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-03",
-      "target": "HUB-02",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-03",
-      "target": "HUB-04",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-04",
-      "target": "HUB-03",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-01",
-      "target": "BYPASS-LEFT",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "BYPASS-LEFT",
-      "target": "HUB-01",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-01",
-      "target": "PLAZA-WEST",
-      "length": 49.49747468305833,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.07,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-WEST",
-      "target": "HUB-01",
-      "length": 49.49747468305833,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.07,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-02",
-      "target": "PLAZA-WEST",
-      "length": 38.07886552931954,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 29.29,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-WEST",
-      "target": "HUB-02",
-      "length": 38.07886552931954,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 29.29,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-02",
-      "target": "PLAZA-CENTER",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-CENTER",
-      "target": "HUB-02",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-03",
-      "target": "PLAZA-CENTER",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-CENTER",
-      "target": "HUB-03",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-03",
-      "target": "PLAZA-EAST",
-      "length": 38.07886552931954,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 29.29,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-EAST",
-      "target": "HUB-03",
-      "length": 38.07886552931954,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 29.29,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-04",
-      "target": "PLAZA-EAST",
-      "length": 49.49747468305833,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.07,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-EAST",
-      "target": "HUB-04",
-      "length": 49.49747468305833,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.07,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-04",
-      "target": "BYPASS-RIGHT",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "BYPASS-RIGHT",
-      "target": "HUB-04",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "BYPASS-LEFT",
-      "target": "PLAZA-WEST",
-      "length": 55.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 42.31,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-WEST",
-      "target": "BYPASS-LEFT",
-      "length": 55.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 42.31,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-WEST",
-      "target": "PLAZA-CENTER",
-      "length": 40.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 30.77,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-CENTER",
-      "target": "PLAZA-WEST",
-      "length": 40.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 30.77,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-CENTER",
-      "target": "PLAZA-EAST",
-      "length": 40.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 30.77,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-EAST",
-      "target": "PLAZA-CENTER",
-      "length": 40.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 30.77,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-EAST",
-      "target": "BYPASS-RIGHT",
-      "length": 55.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 42.31,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "BYPASS-RIGHT",
-      "target": "PLAZA-EAST",
-      "length": 55.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 42.31,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "BYPASS-LEFT",
-      "target": "JUNCTION-01",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-01",
-      "target": "BYPASS-LEFT",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-WEST",
-      "target": "JUNCTION-01",
-      "length": 46.09772228646444,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 35.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-01",
-      "target": "PLAZA-WEST",
-      "length": 46.09772228646444,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 35.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-WEST",
-      "target": "JUNCTION-02",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-02",
-      "target": "PLAZA-WEST",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-CENTER",
-      "target": "JUNCTION-02",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-02",
-      "target": "PLAZA-CENTER",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-CENTER",
-      "target": "JUNCTION-03",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-03",
-      "target": "PLAZA-CENTER",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-EAST",
-      "target": "JUNCTION-03",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-03",
-      "target": "PLAZA-EAST",
-      "length": 40.311288741492746,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 31.01,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "PLAZA-EAST",
-      "target": "JUNCTION-04",
-      "length": 46.09772228646444,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 35.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-04",
-      "target": "PLAZA-EAST",
-      "length": 46.09772228646444,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 35.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "BYPASS-RIGHT",
-      "target": "JUNCTION-04",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-04",
-      "target": "BYPASS-RIGHT",
-      "length": 43.01162633521314,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 33.09,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-01",
-      "target": "JUNCTION-02",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-02",
-      "target": "JUNCTION-01",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-02",
-      "target": "JUNCTION-03",
-      "length": 40.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 30.77,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-03",
-      "target": "JUNCTION-02",
-      "length": 40.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 30.77,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-03",
-      "target": "JUNCTION-04",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-04",
-      "target": "JUNCTION-03",
-      "length": 50.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 38.46,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-01",
-      "target": "EXIT-01",
-      "length": 30.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 23.08,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-01",
-      "target": "JUNCTION-01",
-      "length": 30.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 23.08,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-02",
-      "target": "EXIT-01",
-      "length": 58.309518948453004,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 44.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-01",
-      "target": "JUNCTION-02",
-      "length": 58.309518948453004,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 44.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-02",
-      "target": "EXIT-02",
-      "length": 36.05551275463989,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.74,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-02",
-      "target": "JUNCTION-02",
-      "length": 36.05551275463989,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.74,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-03",
-      "target": "EXIT-02",
-      "length": 36.05551275463989,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.74,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-02",
-      "target": "JUNCTION-03",
-      "length": 36.05551275463989,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 27.74,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-03",
-      "target": "EXIT-03",
-      "length": 58.309518948453004,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 44.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-03",
-      "target": "JUNCTION-03",
-      "length": 58.309518948453004,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 44.85,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "JUNCTION-04",
-      "target": "EXIT-03",
-      "length": 30.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 23.08,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-03",
-      "target": "JUNCTION-04",
-      "length": 30.0,
-      "width": 4.0,
-      "capacity": 8.0,
-      "travel_time": 23.08,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "source": "CK-48",
+      "target": "CK-39"
     },
     {
       "source": "ENTRY-01",
-      "target": "EMG-01",
-      "length": 71.10731326663947,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 54.7,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EMG-01",
-      "target": "ENTRY-01",
-      "length": 71.10731326663947,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 54.7,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "ENTRY-02",
-      "target": "EMG-01",
-      "length": 12.5,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 9.62,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EMG-01",
-      "target": "ENTRY-02",
-      "length": 12.5,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 9.62,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EMG-01",
-      "target": "HUB-02",
-      "length": 53.67727638395972,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 41.29,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "HUB-02",
-      "target": "EMG-01",
-      "length": 53.67727638395972,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 41.29,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EMG-01",
-      "target": "EXIT-01",
-      "length": 163.26741867255694,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 125.59,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
-    },
-    {
-      "source": "EXIT-01",
-      "target": "EMG-01",
-      "length": 163.26741867255694,
-      "width": 4.0,
-      "capacity": 4.0,
-      "travel_time": 125.59,
-      "current_flow": 0.0,
-      "predicted_flow": {},
-      "utilization": 0.0,
-      "risk": 0.0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0.0
+      "target": "CK-01"
     }
   ],
-  "crates": [],
-  "barriers": [],
-  "backgroundImage": "map-bg.jpg",
+  "crates": [
+    {
+      "id": "BOX-01",
+      "name": "BOX-01 Obstacle",
+      "x": 112,
+      "y": 305,
+      "edge": [
+        "CK-01",
+        "CK-10"
+      ]
+    },
+    {
+      "id": "BOX-02",
+      "name": "BOX-02 Obstacle",
+      "x": 638,
+      "y": 436,
+      "edge": [
+        "CK-26",
+        "CK-25"
+      ]
+    }
+  ],
+  "barriers": [
+    {
+      "id": "BARRIER-01",
+      "name": "BARRIER-01 Diverter",
+      "x": 439,
+      "y": 394,
+      "straightEdge": [
+        "CK-09",
+        "CK-04"
+      ],
+      "divertEdge": [
+        "CK-05",
+        "CK-27"
+      ]
+    },
+    {
+      "id": "BARRIER-02",
+      "name": "BARRIER-02 Diverter",
+      "x": 439,
+      "y": 394,
+      "straightEdge": [
+        "CK-53",
+        "CK-52"
+      ],
+      "divertEdge": [
+        "CK-05",
+        "CK-27"
+      ]
+    },
+    {
+      "id": "BARRIER-03",
+      "name": "BARRIER-03 Diverter",
+      "x": 827,
+      "y": 246,
+      "straightEdge": [
+        "CK-48",
+        "CK-39"
+      ],
+      "divertEdge": [
+        "CK-36",
+        "CK-37"
+      ]
+    },
+    {
+      "id": "BARRIER-04",
+      "name": "BARRIER-04 Diverter",
+      "x": 439,
+      "y": 723,
+      "straightEdge": [
+        "CK-08",
+        "EXIT-01"
+      ],
+      "divertEdge": [
+        "CK-08",
+        "CK-44"
+      ]
+    }
+  ],
+  "backgroundImage": "l2_bg.png",
   "custom": true,
   "level": 2
 }

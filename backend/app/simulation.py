@@ -67,7 +67,7 @@ class Agent:
 class SimulationEngine:
     def __init__(self, on_event=None, on_state=None, seed: int = None, arena_id: str = "player",
                  target_evacuation: int = 2000, difficulty: str = "novice",
-                 center_dwell_sec: float = 2.5, level: int = 2):
+                 center_dwell_sec: float = 2.5, level: int = 3):
         self.level = level
         self.sg: StadiumGraph = build_graph_for_level(level)
         self.predictor = SpatioTemporalCrowdPredictor()
@@ -93,6 +93,7 @@ class SimulationEngine:
         self.arrival_counters: Dict[str, int] = {}
         self.departure_counters: Dict[str, int] = {}
         self.edge_transit_counters: Dict[tuple, int] = {}
+        self.edge_live_count: Dict[tuple, int] = {}
         self.last_intervention_tick: int = 0
         # ---- Lifecycle node groups ----
         self._gate_nodes = [n for n, node in self.sg.nodes.items() if node.type == "GATE"]
@@ -109,7 +110,7 @@ class SimulationEngine:
         self.spawn_timer_sec: float = 0.0
         self.spawn_budget_this_second: int = 0
         # ---- Seed initial population ----
-        self._seed_population(base_size=180 if level == 1 else 220)
+        self._seed_population(base_size=250 if level == 1 else 320)
         self.metrics_history: List[dict] = []
 
     def set_level(self, level: int):
@@ -131,7 +132,7 @@ class SimulationEngine:
         self.events.clear()
         self.decisions_log.clear()
         self.active_decision = None
-        self._seed_population(base_size=180 if level == 1 else 220)
+        self._seed_population(base_size=250 if level == 1 else 320)
 
     # ---------------------------------------------------------------- setup
     def _seed_population(self, base_size: int):
@@ -194,13 +195,13 @@ class SimulationEngine:
         # -----------------------------------------------------------------
         # True Random Trickle Spawner (Every second)
         # -----------------------------------------------------------------
-        if self.total_spawned < self.target_evacuation:
+        if len(self.agents) < self.target_evacuation and self.evacuated_count < self.target_evacuation:
             # 1-second countdown bucket
             if not hasattr(self, 'spawn_timer_sec') or self.spawn_timer_sec <= 0:
                 self.spawn_timer_sec = 1.0
                 # Randomize how many people spawn this entire second 
-                # (e.g., sometimes 0, sometimes 5, sometimes 6)
-                self.spawn_budget_this_second = self.rng.randint(0, 7)
+                # (e.g., randint(3, 10))
+                self.spawn_budget_this_second = self.rng.randint(3, 10)
             
             self.spawn_timer_sec -= dt
             
@@ -213,7 +214,7 @@ class SimulationEngine:
                 spawn_count = 1
                 self.spawn_budget_this_second -= 1
             
-            spawn_count = min(spawn_count, self.target_evacuation - self.total_spawned)
+            spawn_count = min(spawn_count, self.target_evacuation - len(self.agents))
             
             for _ in range(spawn_count):
                 if len(self.agents) < config.MAX_PARTICLES:
@@ -390,24 +391,29 @@ class SimulationEngine:
                 agent.route = []
                 return
             else:
-                speed_factor = 0.0
+                movement_speed = 0.0
                 agent.is_congested = True
         else:
-            occupancy = self.edge_live_count.get((agent.current_node, agent.target_node), 1) if hasattr(self, "edge_live_count") else 1
+            occupancy = self.edge_live_count.get((agent.current_node, agent.target_node), 0) if hasattr(self, "edge_live_count") else 0
             
-            reference_L = 50.0 
-            scaled_half_capacity = 10.0 * (max(edge.length, 1.0) / reference_L)
-            
-            density_ratio = occupancy / max(scaled_half_capacity, 1.0)
-            speed_factor = 1.0 / (1.0 + density_ratio)
-            speed_factor = max(0.5, speed_factor)
-            
-            # 1. NEW: Flag the agent as congested if speed drops below 65% of max
-            agent.is_congested = (speed_factor <= 0.65)
-            
-        # 2. USER RULE: Lower the speed from 18.0 to 10.0 (the sweet spot)
-        base_speed = 10.0 
-        agent.progress += (base_speed * speed_factor * dt * 2.5) / max(edge.length, 1.0)
+            rated_capacity = getattr(edge, "capacity", 0.0)
+            if rated_capacity and rated_capacity > 0:
+                threshold_x = min(config.NPC_DEFAULT_CONGESTION_THRESHOLD, config.NPC_CONGESTION_CAPACITY_RATIO * rated_capacity)
+            else:
+                threshold_x = config.NPC_DEFAULT_CONGESTION_THRESHOLD
+
+            is_congested = (occupancy >= config.NPC_DEFAULT_CONGESTION_THRESHOLD) or (
+                rated_capacity > 0 and (occupancy / rated_capacity) >= config.NPC_CONGESTION_CAPACITY_RATIO
+            ) or (occupancy >= threshold_x)
+
+            if is_congested:
+                movement_speed = config.NPC_SPEED_SLOW  # 30% of base speed (3.0)
+                agent.is_congested = True
+            else:
+                movement_speed = config.NPC_SPEED_FAST  # 100% of base speed (10.0)
+                agent.is_congested = False
+
+        agent.progress += (movement_speed * dt * 2.5) / max(edge.length, 1.0)
 
         src = self.sg.nodes[agent.current_node]
         dst = self.sg.nodes[agent.target_node]
@@ -421,6 +427,7 @@ class SimulationEngine:
             agent.current_node = arrived_at
             agent.target_node = None
             agent.progress = 0.0
+            agent.is_congested = False
 
             # ---- Stage 4: EVACUATED — agent exits the arena ----
             if self.sg.nodes[arrived_at].type == "EXIT":
@@ -901,7 +908,8 @@ class SimulationEngine:
         particles = [
             {"id": a.id, "x": round(a.x, 1), "y": round(a.y, 1), "group_id": a.group_id,
              "ghost": a.ghost, "destination": a.destination, "route": a.route,
-             "stage": a.stage, "is_congested": getattr(a, "is_congested", False)}
+             "stage": a.stage, "is_congested": getattr(a, "is_congested", False),
+             "is_slow": getattr(a, "is_congested", False)}
             for a in self.agents.values()
         ]
         critical_nodes = [n.id for n in self.sg.nodes.values() if band_for(n.risk) == "CRITICAL"]

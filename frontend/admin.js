@@ -15,7 +15,7 @@
 
   const LEVEL_BACKGROUNDS = {
     1: "level1.png",
-    2: "map-bg.jpg",
+    2: "l2_bg.png",
     3: "map-bg.jpg",
   };
 
@@ -99,6 +99,18 @@
   let canvas, ctx, container;
   let coordsDisplay, statNodes, statEdges, statCrates, statBarriers;
   let modeHint, toastEl, selectionInspector, levelSelect, levelStatusText, lnkPlayLevel, hdrPlayLvlNum;
+  let bgImageUpload, btnChooseBgImage, bgThumbPreview, bgFileName, btnResetBgImage;
+
+  function updateBgThumbnail() {
+    const src = state.backgroundImage || LEVEL_BACKGROUNDS[state.currentLevel] || "level1.png";
+    if (bgThumbPreview) {
+      bgThumbPreview.src = src;
+    }
+    if (bgFileName) {
+      const parts = src.split("/");
+      bgFileName.textContent = parts[parts.length - 1] || src;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Coordinate Helpers
@@ -132,10 +144,12 @@
   // ---------------------------------------------------------------------------
   // Hit Testing
   // ---------------------------------------------------------------------------
-  function findNodeAt(wx, wy, radius = 14) {
+  function findNodeAt(wx, wy, defaultRadius = 14) {
     for (let i = state.nodes.length - 1; i >= 0; i--) {
       const n = state.nodes[i];
-      if (dist(wx, wy, n.x, n.y) <= radius) {
+      const visualR = (n.type === "GATE" || n.type === "EXIT" ? 6 : 4.5) / state.scale;
+      const hitR = visualR + (10 / state.scale);
+      if (dist(wx, wy, n.x, n.y) <= hitR) {
         return n;
       }
     }
@@ -441,12 +455,17 @@
       const isSelected = state.selectedElement?.type === "node" && state.selectedElement.data === node;
       const isHovered = state.hoveredItem?.type === "node" && state.hoveredItem.data === node;
       const isPendingSource = state.pendingEdgeSource === node || state.pendingBarrierNode === node;
-      const radius = (node.type === "GATE" || node.type === "EXIT" ? 9 : 7) / state.scale;
+      const radius = (node.type === "GATE" || node.type === "EXIT" ? 6 : 4.5) / state.scale;
 
       if (isSelected || isPendingSource) {
         ctx.beginPath();
-        ctx.arc(node.x, node.y, radius + 6 / state.scale, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, radius + 3.5 / state.scale, 0, Math.PI * 2);
         ctx.fillStyle = isPendingSource ? "rgba(56, 189, 248, 0.3)" : "rgba(250, 204, 21, 0.3)";
+        ctx.fill();
+      } else if (isHovered) {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, radius + 3 / state.scale, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
         ctx.fill();
       }
 
@@ -454,14 +473,14 @@
       ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = NODE_COLORS[node.type] || "#60a5fa";
       ctx.fill();
-      ctx.strokeStyle = isSelected ? "#facc15" : isHovered ? "#fff" : "rgba(255, 255, 255, 0.7)";
+      ctx.strokeStyle = isSelected ? "#facc15" : isHovered ? "#fff" : "rgba(255, 255, 255, 0.75)";
       ctx.lineWidth = 1.5 / state.scale;
       ctx.stroke();
 
       ctx.fillStyle = "#e2e8f0";
-      ctx.font = `${Math.max(9, 10 / state.scale)}px 'JetBrains Mono', monospace`;
+      ctx.font = `${Math.max(8, 9.5 / state.scale)}px 'JetBrains Mono', monospace`;
       ctx.textAlign = "center";
-      ctx.fillText(node.id, node.x, node.y - radius - 3 / state.scale);
+      ctx.fillText(node.id, node.x, node.y - radius - 2 / state.scale);
     }
 
     requestAnimationFrame(render);
@@ -599,6 +618,7 @@
     // Update background image for this level
     state.backgroundImage = LEVEL_BACKGROUNDS[level] || "level1.png";
     bgImg.src = state.backgroundImage;
+    updateBgThumbnail();
 
     // Update header link
     if (lnkPlayLevel) lnkPlayLevel.href = `/level${level}`;
@@ -617,6 +637,7 @@
           if (data.backgroundImage) {
             state.backgroundImage = data.backgroundImage;
             bgImg.src = state.backgroundImage;
+            updateBgThumbnail();
           }
           updateStats();
           updateInspector();
@@ -664,6 +685,7 @@
 
       state.backgroundImage = LEVEL_BACKGROUNDS[level] || "level1.png";
       bgImg.src = state.backgroundImage;
+      updateBgThumbnail();
 
       updateStats();
       updateInspector();
@@ -770,6 +792,63 @@
       if (confirm(`Reset Level ${state.currentLevel} to default template? Custom unsaved changes will be lost.`)) {
         resetToDefaultTemplate(state.currentLevel, true);
       }
+    });
+
+    // Background Image Upload & Reset
+    btnChooseBgImage?.addEventListener("click", () => {
+      bgImageUpload?.click();
+    });
+
+    bgImageUpload?.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      // Instant local preview via FileReader
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        bgImg.src = dataUrl;
+        if (bgThumbPreview) bgThumbPreview.src = dataUrl;
+        if (bgFileName) bgFileName.textContent = file.name;
+      };
+      reader.readAsDataURL(file);
+
+      // Upload file to server endpoint
+      try {
+        showToast(`Uploading background for Level ${state.currentLevel}...`, "normal");
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch(`/api/admin/upload-bg/${state.currentLevel}`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          state.backgroundImage = data.path;
+          bgImg.src = state.backgroundImage;
+          updateBgThumbnail();
+          state.isCustomMap = true;
+          updateStatusPill(true);
+          showToast(`Custom background saved for Level ${state.currentLevel}!`, "success");
+        } else {
+          showToast(`Upload failed: ${data?.error || "Unknown error"}`, "error");
+        }
+      } catch (err) {
+        console.warn("Background upload error, using local data URL:", err);
+        state.backgroundImage = file.name;
+        state.isCustomMap = true;
+        updateStatusPill(true);
+      }
+
+      bgImageUpload.value = "";
+    });
+
+    btnResetBgImage?.addEventListener("click", () => {
+      const defaultBg = LEVEL_BACKGROUNDS[state.currentLevel] || "level1.png";
+      state.backgroundImage = defaultBg;
+      bgImg.src = state.backgroundImage;
+      updateBgThumbnail();
+      showToast(`Reset background to default (${defaultBg})`, "normal");
     });
 
     // Zoom buttons
@@ -1012,6 +1091,11 @@
     levelStatusText = document.getElementById("levelStatusText");
     lnkPlayLevel = document.getElementById("lnkPlayLevel");
     hdrPlayLvlNum = document.getElementById("hdrPlayLvlNum");
+    bgImageUpload = document.getElementById("bgImageUpload");
+    btnChooseBgImage = document.getElementById("btnChooseBgImage");
+    bgThumbPreview = document.getElementById("bgThumbPreview");
+    bgFileName = document.getElementById("bgFileName");
+    btnResetBgImage = document.getElementById("btnResetBgImage");
 
     if (!canvas || !container) {
       console.error("Editor canvas elements not found!");

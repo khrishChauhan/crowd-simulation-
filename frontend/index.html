@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CrowdShield — 2D Stadium Evacuation Game</title>
+<link rel="icon" type="image/png" href="fav.png" />
+<link rel="shortcut icon" type="image/png" href="fav.png" />
+<link rel="apple-touch-icon" href="fav.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -11,9 +14,28 @@
 </head>
 <body>
 
+  <!-- ============================= INITIAL TITLE SPLASH SCREEN ============================= -->
+  <div id="splashScreen" class="splash-screen">
+    <div class="click-to-play-wrap" id="btnClickToPlay" role="button" tabindex="0" title="Click to Play CrowdShield" aria-label="Click to Play">
+      <img src="click.png" alt="Click to Play" class="click-play-img" draggable="false" />
+    </div>
+  </div>
+
   <!-- NEW INTERACTIVE LANDING SCREEN -->
-  <div id="landingScreen" class="landing-screen">
+  <div id="landingScreen" class="landing-screen" style="display: none;">
     <div class="landing-map-stage" id="landingMapStage">
+      <!-- Return to Title Screen Button -->
+      <button class="map-title-btn" id="btnReturnTitle" title="Return to Title Screen" aria-label="Return to Title Screen">
+        <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>TITLE</span>
+      </button>
+      <!-- Background Video -->
+      <video id="bgVideo" class="landing-bg-video" autoplay loop muted playsinline poster="map-bg.jpg">
+        <source src="bg.mp4" type="video/mp4" />
+      </video>
       <!-- Clickable hitboxes positioned over the Level 1, 2, and 3 badges in the image -->
       <div class="level-hitbox" id="btnLaunchLvl1" data-level="1" title="Play Level 1 (Novice)">
         <img id="imgLvl1" class="level-badge-img" src="l1_ul.png" alt="Level 1" draggable="false" />
@@ -33,7 +55,13 @@
   <!-- ============================= PRE-MATCH COUNTDOWN OVERLAY ============================= -->
   <div id="countdownOverlay" class="countdown-overlay" hidden>
     <div class="countdown-card">
-      <div class="countdown-number" id="countdownText">3</div>
+      <div class="countdown-badge-wrap" style="display: none;">
+        <img id="countdownFav" class="countdown-fav" src="fav.png" alt="CrowdShield AI" style="display: none;" />
+      </div>
+      <div class="countdown-graphic-wrap">
+        <img id="countdownImg" class="countdown-img countdown-tick-anim" src="3.png" alt="Countdown" />
+        <span id="countdownText" class="countdown-number" style="display: none;">3</span>
+      </div>
       <div class="countdown-subhead" id="countdownSub">PREPARE STADIUM FLOW</div>
     </div>
   </div>
@@ -92,6 +120,14 @@
     </div>
 
     <div class="hud-right">
+      <!-- Return to Title Screen -->
+      <button class="hud-icon-btn" id="btnHudTitle" title="Title Screen (/)" aria-label="Title Screen">
+        <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </button>
+
       <!-- Return to World Map -->
       <button class="hud-icon-btn" id="btnReturnMap" title="World Map (/map)" aria-label="World Map">
         <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -244,6 +280,7 @@
 
       <!-- Action Footer -->
       <div class="scorecard-footer">
+        <button id="btnScorecardHome" class="modal-btn">🏠 TITLE</button>
         <button id="btnScorecardMap" class="modal-btn">🗺 WORLD MAP</button>
         <button id="btnRetryLevel" class="modal-btn">↺ RETRY LEVEL</button>
         <button id="btnNextLevel" class="modal-btn modal-btn-primary">NEXT LEVEL ▶</button>

@@ -20,6 +20,15 @@
     CRITICAL: "#f04863"
   };
 
+  const NODE_COLORS = {
+    GATE: "#10b981",       // Green
+    EXIT: "#ef4444",       // Red
+    CHECKPOINT: "#60a5fa", // Cyan / Blue
+    JUNCTION: "#a855f7",   // Purple
+    SEATING: "#f59e0b",    // Amber
+    EMERGENCY: "#ec4899"   // Pink
+  };
+
   const LEVEL_CONFIGS = {
     1: { name: "ROOKIE", timeLimit: 120, target: 500, diff: "NOVICE" },
     2: { name: "PRO",    timeLimit: 120, target: 750, diff: "PRO" },
@@ -56,15 +65,36 @@
   let matchEnded = false;
   let levelTimeLimitSec = 180;
 
-  // Preloaded Visual Assets for Level 1
-  const level1BgImg = new Image();
-  level1BgImg.src = "/level1.png";
+  // Preloaded Visual Assets for Levels & Backgrounds
+  const LEVEL_BACKGROUNDS = {
+    1: "level1.png",
+    2: "l2_bg.png",
+    3: "map-bg.jpg"
+  };
+  const levelBgImg = new Image();
+  levelBgImg.src = "/level1.png";
+  const level1BgImg = levelBgImg;
 
   const boxSprite = new Image();
   boxSprite.src = "/box.png";
 
   const barrierSprite = new Image();
   barrierSprite.src = "/barrier.png";
+
+  // Preloaded Countdown Graphics (3.png, 2.png, 1.png, fav.png)
+  const COUNTDOWN_IMAGE_SRCS = ["3.png", "2.png", "1.png", "fav.png"];
+  const preloadedCountdownImgs = {};
+  COUNTDOWN_IMAGE_SRCS.forEach(src => {
+    const img = new Image();
+    img.src = "/" + src;
+    preloadedCountdownImgs[src] = img;
+  });
+
+  // Preload Splash Screen Assets (1page.jpg, click.png)
+  const splashBgImg = new Image();
+  splashBgImg.src = "/1page.jpg";
+  const clickPlayImg = new Image();
+  clickPlayImg.src = "/click.png";
 
   // Tactile Map Hover State (Player Canvas Only)
   let hoveredNode = null;       // Reference to currently hovered node
@@ -89,6 +119,11 @@
       const res = await fetch(`/api/admin/map/${lvl}`);
       if (res.ok) {
         const mapData = await res.json();
+        if (mapData && mapData.backgroundImage) {
+          levelBgImg.src = mapData.backgroundImage.startsWith("/") ? mapData.backgroundImage : "/" + mapData.backgroundImage;
+        } else {
+          levelBgImg.src = "/" + (LEVEL_BACKGROUNDS[lvl] || "level1.png");
+        }
         if (mapData && mapData.custom !== false) {
           if (Array.isArray(mapData.crates)) {
             for (const c of mapData.crates) {
@@ -106,9 +141,11 @@
         }
       }
       // If 404 or custom === false, fall back to hardcoded defaults
+      levelBgImg.src = "/" + (LEVEL_BACKGROUNDS[lvl] || "level1.png");
       applyDefaultInteractiveObjects(lvl);
     } catch (err) {
       console.warn(`Could not load map for level ${lvl} from /api/admin/map/${lvl}, using defaults:`, err);
+      levelBgImg.src = "/" + (LEVEL_BACKGROUNDS[lvl] || "level1.png");
       applyDefaultInteractiveObjects(lvl);
     }
   }
@@ -395,46 +432,79 @@
     playHazardSound();
   }
 
+  function updateCountdownGraphic(imgEl, src, isGo = false) {
+    if (!imgEl) return;
+    imgEl.src = "/" + src;
+    if (isGo) {
+      imgEl.classList.add("countdown-go-img");
+    } else {
+      imgEl.classList.remove("countdown-go-img");
+    }
+    // Re-trigger the CSS entrance scale animation on every image swap
+    imgEl.classList.remove("countdown-tick-anim");
+    void imgEl.offsetWidth; // Force reflow
+    imgEl.classList.add("countdown-tick-anim");
+  }
+
   // ------------------------------------------------------------- Pre-Match Countdown Sequence
   function startPreMatchCountdown(onComplete) {
     const overlay = document.getElementById("countdownOverlay");
+    const imgEl = document.getElementById("countdownImg");
     const numEl = document.getElementById("countdownText");
     const subEl = document.getElementById("countdownSub");
-    if (!overlay || !numEl) {
+    if (!overlay) {
       if (onComplete) onComplete();
       return;
     }
 
     isCountingDown = true;
     overlay.hidden = false;
-    numEl.classList.remove("countdown-go");
-    numEl.textContent = "3";
-    if (subEl) subEl.textContent = "PREPARE STADIUM FLOW";
+    if (numEl) {
+      numEl.classList.remove("countdown-go");
+      numEl.textContent = "3";
+    }
+    if (subEl) {
+      subEl.classList.remove("subhead-go");
+      subEl.textContent = "PREPARE STADIUM FLOW";
+    }
+    updateCountdownGraphic(imgEl, "3.png", false);
     playCountdownBeep();
 
     if (countdownTimer) clearTimeout(countdownTimer);
 
     // Step 2: 2
     countdownTimer = setTimeout(() => {
-      numEl.textContent = "2";
+      if (numEl) numEl.textContent = "2";
+      if (subEl) subEl.textContent = "MONITOR BOTTLENECKS";
+      updateCountdownGraphic(imgEl, "2.png", false);
       playCountdownBeep();
 
       // Step 3: 1
       countdownTimer = setTimeout(() => {
-        numEl.textContent = "1";
+        if (numEl) numEl.textContent = "1";
+        if (subEl) subEl.textContent = "READY GATES & CORRIDORS";
+        updateCountdownGraphic(imgEl, "1.png", false);
         playCountdownBeep();
 
-        // Step 4: CONTROL THE FLOW!
+        // Step 4: Final Tick (Match Start) -> fav.png / CONTROL THE FLOW!
         countdownTimer = setTimeout(() => {
-          numEl.textContent = "CONTROL THE FLOW!";
-          numEl.classList.add("countdown-go");
-          if (subEl) subEl.textContent = "ALL EXITS ACTIVE";
+          if (numEl) {
+            numEl.textContent = "CONTROL THE FLOW!";
+            numEl.classList.add("countdown-go");
+          }
+          if (subEl) {
+            subEl.textContent = "CONTROL THE FLOW!";
+            subEl.classList.add("subhead-go");
+          }
+          updateCountdownGraphic(imgEl, "fav.png", true);
           playCountdownGo();
 
-          // Step 5: Start match
+          // Step 5: Start match physics after 500ms
           countdownTimer = setTimeout(() => {
             overlay.hidden = true;
-            numEl.classList.remove("countdown-go");
+            if (numEl) numEl.classList.remove("countdown-go");
+            if (subEl) subEl.classList.remove("subhead-go");
+            if (imgEl) imgEl.classList.remove("countdown-go-img");
             isCountingDown = false;
             matchStartTime = performance.now();
             matchEnded = false;
@@ -443,11 +513,14 @@
             if (leadLabel) leadLabel.textContent = "DUEL IN PROGRESS";
             triggerStartHint();
             if (onComplete) onComplete();
-          }, 600);
+          }, 500);
         }, 1000);
       }, 1000);
     }, 1000);
   }
+
+  // Alias for external callers
+  const startCountdown = startPreMatchCountdown;
 
   function triggerStartHint() {
     const hint = document.getElementById("startHint");
@@ -965,10 +1038,10 @@
   }
 
   function graphToScreen(gx, gy, canvasWidth, canvasHeight) {
-    const isLvl1 = currentLevel === 1;
-    const gw = isLvl1 ? 1280 : 1000;
-    const gh = isLvl1 ? 853 : 700;
-    const margin = isLvl1 ? 8 : 45;
+    const isImageBg = currentLevel === 1 || currentLevel === 2 || (levelBgImg.complete && levelBgImg.naturalWidth > 0 && currentLevel !== 3);
+    const gw = isImageBg ? 1280 : 1000;
+    const gh = isImageBg ? 853 : 700;
+    const margin = isImageBg ? 8 : 45;
     const scale = Math.min((canvasWidth - margin * 2) / gw, (canvasHeight - margin * 2) / gh);
     const offsetX = (canvasWidth - gw * scale) / 2;
     const offsetY = (canvasHeight - gh * scale) / 2;
@@ -984,8 +1057,8 @@
     const my = (ev.clientY - rect.top) * dpr;
     const w = playerCanvas.width, h = playerCanvas.height;
 
-    // 0. Level 1 Tactical Interactive Objects Hit Test (Crates & Barriers)
-    if (currentLevel === 1) {
+    // 0. Tactical Interactive Objects Hit Test (Crates & Barriers)
+    if (currentLevel === 1 || Object.keys(playerCrates).length > 0 || Object.keys(playerBarriers).length > 0) {
       // A. Crate Obstacles Hit Test
       for (const cid in playerCrates) {
         const crate = playerCrates[cid];
@@ -1043,25 +1116,18 @@
     hoveredCrate = null;
     hoveredBarrier = null;
 
-    // 1. Node Hit Test (supports rectangular gates/exits/plazas and circular junctions)
+    // 1. Node Hit Test (maintains click precision with 10px-12px padding around the smaller visual circle)
     let hitNode = null;
     for (const node of latestPlayerState.graph.nodes) {
       if (node.id === "EMG-01" && !latestPlayerState.emergency_active) continue;
       const [nx, ny, s] = graphToScreen(node.x, node.y, w, h);
-      const isBox = node.type === "GATE" || node.type === "EXIT" || node.type === "SEATING" || node.id.startsWith("BYPASS") || node.id.startsWith("PLAZA");
-      if (isBox) {
-        const halfW = Math.max(30 * s, 26 * dpr);
-        const halfH = Math.max(16 * s, 16 * dpr);
-        if (Math.abs(mx - nx) <= halfW && Math.abs(my - ny) <= halfH) {
-          hitNode = node;
-          break;
-        }
-      } else {
-        const radius = Math.max(16 * dpr, 18 * s);
-        if (Math.hypot(mx - nx, my - ny) <= radius) {
-          hitNode = node;
-          break;
-        }
+      const isGate = node.type === "GATE";
+      const isExit = node.type === "EXIT";
+      const visualR = (isGate || isExit ? 6.0 : 4.5) * s;
+      const hitRadius = visualR + Math.max(10 * dpr, 11 * s);
+      if (Math.hypot(mx - nx, my - ny) <= hitRadius) {
+        hitNode = node;
+        break;
       }
     }
 
@@ -1432,19 +1498,20 @@
         ctx.arc(px, py, stdRadius, 0, Math.PI * 2);
 
         // 4-stage lifecycle particles: INGRESS, DWELL, EGRESS, EVACUATED
-        // Overhauled particle colors: ONLY Red (congested) or White (normal)
-        if (p.is_congested) {
-          // Congested: Red
-          ctx.fillStyle = "#ef4444";
+        // Strict Binary 2-Speed & 2-Color System:
+        // FAST: Pure White (#ffffff) | SLOW: Bright Danger Red (#ff334b)
+        if (p.is_congested || p.is_slow) {
+          // Slow: Bright Danger Red
+          ctx.fillStyle = "#ff334b";
           ctx.fill();
           ctx.strokeStyle = "#7f1d1d";
           ctx.lineWidth = 1.0 * scale;
           ctx.stroke();
         } else {
-          // Normal: White
+          // Fast: Pure White
           ctx.fillStyle = "#ffffff";
           ctx.fill();
-          ctx.strokeStyle = "#0f172a";
+          ctx.strokeStyle = "#0b0f17";
           ctx.lineWidth = 1.0 * scale;
           ctx.stroke();
         }
@@ -1544,55 +1611,50 @@
       ctx.restore();
     }
 
-    // 7. Gates (Top 2) and Exit (Bottom 1)
+    // 7. Nodes (Gates, Exits, Checkpoints, Junctions, Seating)
     for (const node of graph.nodes) {
       if (node.id === "EMG-01" && !state.emergency_active) continue;
       const [nx, ny] = graphToScreen(node.x, node.y, w, h);
       const isHovered = isPlayer && hoveredNode && hoveredNode.id === node.id;
       const isBlocked = node.control_state === "BLOCK";
+      const isGate = node.type === "GATE";
+      const isExit = node.type === "EXIT";
+      const r = (isGate || isExit ? 6.0 : 4.5) * scale;
+      const nodeColor = NODE_COLORS[node.type] || "#60a5fa";
 
-      if (node.type === "GATE") {
-        const isLeft = node.id === "ENTRY-01";
-        const label = isLeft ? "ENTRY 1" : "ENTRY 2";
-        const gW = 58 * scale;
-        const gH = 24 * scale;
-        const gR = 4 * scale;
+      ctx.save();
 
-        ctx.save();
-        roundRect(ctx, nx - gW / 2, ny - gH / 2, gW, gH, gR);
-        ctx.fillStyle = isBlocked ? "#271418" : "#121d1b";
-        ctx.fill();
-        ctx.strokeStyle = isHovered ? "#38bdf8" : (isBlocked ? "#ef4444" : "#10b981");
-        ctx.lineWidth = 1.8 * scale;
+      // Hover / Selection Ring
+      if (isHovered) {
+        ctx.beginPath();
+        ctx.arc(nx, ny, r + 3.0 * scale, 0, Math.PI * 2);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 1.5 * scale;
         ctx.stroke();
-
-        ctx.font = `800 ${Math.max(8, Math.floor(9.2 * scale))}px 'Inter', sans-serif`;
-        ctx.fillStyle = isBlocked ? "#fca5a5" : "#ffffff";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(isBlocked ? `${label} ✕` : `${label} ↓`, nx, ny);
-        ctx.restore();
-      } else if (node.type === "EXIT") {
-        const label = "TEMPLE EXIT";
-        const eW = 92 * scale;
-        const eH = 26 * scale;
-        const eR = 5 * scale;
-
-        ctx.save();
-        roundRect(ctx, nx - eW / 2, ny - eH / 2, eW, eH, eR);
-        ctx.fillStyle = isBlocked ? "#271418" : "#063d2e";
-        ctx.fill();
-        ctx.strokeStyle = isHovered ? "#38bdf8" : (isBlocked ? "#ef4444" : "#10b981");
-        ctx.lineWidth = 2.0 * scale;
-        ctx.stroke();
-
-        ctx.font = `800 ${Math.max(8.5, Math.floor(9.8 * scale))}px 'Inter', sans-serif`;
-        ctx.fillStyle = isBlocked ? "#fca5a5" : "#ffffff";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(isBlocked ? "EXIT ✕" : `${label} 🚪`, nx, ny);
-        ctx.restore();
       }
+
+      // Node Circle
+      ctx.beginPath();
+      ctx.arc(nx, ny, r, 0, Math.PI * 2);
+      ctx.fillStyle = isBlocked ? "#271418" : nodeColor;
+      ctx.fill();
+      ctx.strokeStyle = isBlocked ? "#ef4444" : (isHovered ? "#ffffff" : "rgba(255, 255, 255, 0.85)");
+      ctx.lineWidth = 1.5 * scale;
+      ctx.stroke();
+
+      // Blocked barrier marker
+      if (isBlocked) {
+        drawClosedNodeBarrier(ctx, nx, ny, r, scale);
+      }
+
+      // Node Label Typography & Offset
+      ctx.font = `600 ${Math.max(8, Math.floor(9.5 * scale))}px 'JetBrains Mono', sans-serif`;
+      ctx.fillStyle = isBlocked ? "#fca5a5" : "#e2e8f0";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(node.name || node.id, nx, ny - r - (2.0 * scale));
+
+      ctx.restore();
     }
 
     // 8. Floating Animated Hazard & Decision Popouts
@@ -1699,7 +1761,7 @@
       return;
     }
 
-    if (currentLevel === 1) {
+    if (currentLevel === 1 || currentLevel === 2 || (levelBgImg.complete && levelBgImg.naturalWidth > 0 && currentLevel !== 3)) {
       drawTempleArena(ctx, canvas, state, isPlayer, now);
       return;
     }
@@ -1858,15 +1920,17 @@
         ctx.beginPath();
         ctx.arc(px, py, (stage === "DWELL" || stage === "CENTER_DWELL") ? dwellRadius : stdRadius, 0, Math.PI * 2);
 
-        if (p.is_congested) {
-          // Congested: Red
-          ctx.fillStyle = "#ef4444";
+        // Strict Binary 2-Speed & 2-Color System:
+        // FAST: Pure White (#ffffff) | SLOW: Bright Danger Red (#ff334b)
+        if (p.is_congested || p.is_slow) {
+          // Slow: Bright Danger Red
+          ctx.fillStyle = "#ff334b";
           ctx.fill();
           ctx.strokeStyle = "#7f1d1d";
           ctx.lineWidth = 1.0 * s;
           ctx.stroke();
         } else {
-          // Normal: White
+          // Fast: Pure White
           ctx.fillStyle = "#ffffff";
           ctx.fill();
           ctx.strokeStyle = "#0b0f17";
@@ -1877,7 +1941,7 @@
       ctx.restore();
     }
 
-    // ------------------------------------------------------------- 4. Stadium Nodes (Top Gates, Midfield Plazas, Bottom Exits, Junctions)
+    // ------------------------------------------------------------- 4. Stadium Nodes (Gates, Exits, Checkpoints, Junctions, Seating)
     for (const node of graph.nodes) {
       if (node.id === "EMG-01" && !state.emergency_active) continue;
 
@@ -1885,278 +1949,67 @@
       const isClosed = node.control_state === "BLOCK";
       const isGate = node.type === "GATE";
       const isExit = node.type === "EXIT";
-      const isSeating = node.type === "SEATING" || node.id.startsWith("PLAZA");
-      const isBypass = node.id.startsWith("BYPASS");
       const isHovered = isPlayer && hoveredNode && hoveredNode.id === node.id;
       const isAiIntervened = !isPlayer && state.active_decision && (
         state.active_decision.intervention_location === node.id ||
         state.active_decision.risk_location === node.id
       );
 
+      const r = (isGate || isExit ? 6.0 : 4.5) * s;
+      const nodeColor = NODE_COLORS[node.type] || "#60a5fa";
+      const risk = node.risk || 0;
+      const peopleCount = node.current_people || 0;
+      const isHazardProne = (peopleCount / Math.max(1, node.capacity || 10)) >= 0.45 || risk >= 0.50;
+
       ctx.save();
 
-      // =========================== ENTRANCE GATES (TOP ROW, y=80) ===========================
-      if (isGate) {
-        const gateNum = node.id.replace(/^(ENTRY|GATE)-0?/, "");
-        const gateLabel = `ENTRY ${gateNum}`;
-        const gateW = 52 * s;
-        const gateH = 24 * s;
-        const gateR = 4 * s;
-
-        // Hover Ring
-        if (isHovered) {
-          roundRect(ctx, nx - (gateW / 2 + 3 * s), ny - (gateH / 2 + 3 * s), gateW + 6 * s, gateH + 6 * s, gateR + 2 * s);
-          ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        // AI Accent
-        if (isAiIntervened) {
-          roundRect(ctx, nx - (gateW / 2 + 3 * s), ny - (gateH / 2 + 3 * s), gateW + 6 * s, gateH + 6 * s, gateR + 2 * s);
-          ctx.strokeStyle = "#a78bfa";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        if (isClosed) {
-          ctx.fillStyle = "#271418";
-          ctx.strokeStyle = "#ef4444";
-          ctx.lineWidth = 1.6 * s;
-          roundRect(ctx, nx - gateW / 2, ny - gateH / 2, gateW, gateH, gateR);
-          ctx.fill();
-          ctx.stroke();
-
-          // Barrier bar
-          ctx.beginPath();
-          ctx.moveTo(nx - gateW * 0.35, ny);
-          ctx.lineTo(nx + gateW * 0.35, ny);
-          ctx.strokeStyle = "rgba(239, 68, 68, 0.75)";
-          ctx.lineWidth = 2.0 * s;
-          ctx.stroke();
-
-          ctx.font = `700 ${Math.max(8, Math.floor(9.0 * s))}px 'Inter', sans-serif`;
-          ctx.fillStyle = "#fca5a5";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(`ENTRY ${gateNum} ✕`, nx, ny);
-        } else {
-          ctx.fillStyle = "#121d1b";
-          ctx.strokeStyle = "#10b981";
-          ctx.lineWidth = 1.5 * s;
-          roundRect(ctx, nx - gateW / 2, ny - gateH / 2, gateW, gateH, gateR);
-          ctx.fill();
-          ctx.stroke();
-
-          // Threshold indicator
-          ctx.beginPath();
-          ctx.moveTo(nx - gateW * 0.38, ny + gateH * 0.36);
-          ctx.lineTo(nx + gateW * 0.38, ny + gateH * 0.36);
-          ctx.strokeStyle = "#10b981";
-          ctx.lineWidth = 2.2 * s;
-          ctx.stroke();
-
-          ctx.font = `700 ${Math.max(8, Math.floor(9.2 * s))}px 'Inter', sans-serif`;
-          ctx.fillStyle = "#f8fafc";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(gateLabel, nx, ny - 1 * s);
-        }
-      }
-      // =========================== EXIT GATES (BOTTOM ROW, y=620) ===========================
-      else if (isExit) {
-        const exitNum = node.id.replace(/^EXIT-0?/, "");
-        const exitLabel = `EXIT ${exitNum}`;
-        const exitW = 54 * s;
-        const exitH = 24 * s;
-        const exitR = 4 * s;
-
-        // Hover Ring
-        if (isHovered) {
-          roundRect(ctx, nx - (exitW / 2 + 3 * s), ny - (exitH / 2 + 3 * s), exitW + 6 * s, exitH + 6 * s, exitR + 2 * s);
-          ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        // AI Accent
-        if (isAiIntervened) {
-          roundRect(ctx, nx - (exitW / 2 + 3 * s), ny - (exitH / 2 + 3 * s), exitW + 6 * s, exitH + 6 * s, exitR + 2 * s);
-          ctx.strokeStyle = "#a78bfa";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        if (isClosed) {
-          ctx.fillStyle = "#271418";
-          ctx.strokeStyle = "#ef4444";
-          ctx.lineWidth = 1.6 * s;
-          roundRect(ctx, nx - exitW / 2, ny - exitH / 2, exitW, exitH, exitR);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(nx - exitW * 0.35, ny);
-          ctx.lineTo(nx + exitW * 0.35, ny);
-          ctx.strokeStyle = "rgba(239, 68, 68, 0.75)";
-          ctx.lineWidth = 2.0 * s;
-          ctx.stroke();
-
-          ctx.font = `700 ${Math.max(8, Math.floor(9.0 * s))}px 'Inter', sans-serif`;
-          ctx.fillStyle = "#fca5a5";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(`EXIT ${exitNum} ✕`, nx, ny);
-        } else {
-          ctx.fillStyle = "#063d2e";
-          ctx.strokeStyle = "#10b981";
-          ctx.lineWidth = 1.8 * s;
-          roundRect(ctx, nx - exitW / 2, ny - exitH / 2, exitW, exitH, exitR);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.font = `800 ${Math.max(8.5, Math.floor(9.5 * s))}px 'Inter', sans-serif`;
-          ctx.fillStyle = "#ffffff";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(`EXIT ${exitNum} ↓`, nx, ny);
-        }
-      }
-      // =========================== CENTRAL PLAZAS (MIDFIELD ROW, y=360) ===========================
-      else if (isSeating) {
-        let plazaName = "PLAZA";
-        if (node.id.includes("WEST")) plazaName = "WEST PLAZA";
-        else if (node.id.includes("EAST")) plazaName = "EAST PLAZA";
-        else plazaName = "CENTER PLAZA";
-
-        const pW = 66 * s;
-        const pH = 26 * s;
-        const pR = 5 * s;
-        const count = Math.round(node.current_people || 0);
-
-        if (isHovered) {
-          roundRect(ctx, nx - (pW / 2 + 3 * s), ny - (pH / 2 + 3 * s), pW + 6 * s, pH + 6 * s, pR + 2 * s);
-          ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        if (isAiIntervened) {
-          roundRect(ctx, nx - (pW / 2 + 3 * s), ny - (pH / 2 + 3 * s), pW + 6 * s, pH + 6 * s, pR + 2 * s);
-          ctx.strokeStyle = "#a78bfa";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        if (isClosed) {
-          ctx.fillStyle = "#271418";
-          ctx.strokeStyle = "#ef4444";
-          ctx.lineWidth = 1.5 * s;
-          roundRect(ctx, nx - pW / 2, ny - pH / 2, pW, pH, pR);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.font = `700 ${Math.max(8, Math.floor(8.5 * s))}px 'Inter', sans-serif`;
-          ctx.fillStyle = "#fca5a5";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("HOLD ✕", nx, ny);
-        } else {
-          ctx.fillStyle = count > 0 ? "rgba(245, 158, 11, 0.14)" : "#141923";
-          ctx.strokeStyle = count > 0 ? "#f59e0b" : "#283446";
-          ctx.lineWidth = 1.3 * s;
-          roundRect(ctx, nx - pW / 2, ny - pH / 2, pW, pH, pR);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.font = `700 ${Math.max(8, Math.floor(8.5 * s))}px 'Inter', sans-serif`;
-          ctx.fillStyle = count > 0 ? "#fbbf24" : "#94a3b8";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(count > 0 ? `${plazaName} (${count})` : plazaName, nx, ny);
-        }
-      }
-      // =========================== BYPASS CHECKPOINTS ===========================
-      else if (isBypass) {
-        const bpLabel = node.id === "BYPASS-LEFT" ? "BYPASS L" : "BYPASS R";
-        const bpW = 48 * s;
-        const bpH = 20 * s;
-        const bpR = 4 * s;
-
-        if (isHovered) {
-          roundRect(ctx, nx - (bpW / 2 + 3 * s), ny - (bpH / 2 + 3 * s), bpW + 6 * s, bpH + 6 * s, bpR + 2 * s);
-          ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        ctx.fillStyle = "#151b25";
-        ctx.strokeStyle = "#2d3848";
-        ctx.lineWidth = 1.2 * s;
-        roundRect(ctx, nx - bpW / 2, ny - bpH / 2, bpW, bpH, bpR);
+      // Subtle danger glow
+      if (isHazardProne) {
+        const pulse = (Math.sin(now * 0.007) + 1) * 0.5;
+        const auraRadius = r + (2.5 + pulse * 3.5) * s;
+        ctx.beginPath();
+        ctx.arc(nx, ny, auraRadius, 0, Math.PI * 2);
+        ctx.fillStyle = risk >= 0.75 ? `rgba(239, 68, 68, ${0.16 + pulse * 0.16})` : `rgba(245, 158, 11, ${0.16 + pulse * 0.12})`;
         ctx.fill();
+      }
+
+      // Hover Ring / Halo
+      if (isHovered) {
+        ctx.beginPath();
+        ctx.arc(nx, ny, r + 3.0 * s, 0, Math.PI * 2);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 1.5 * s;
         ctx.stroke();
-
-        ctx.font = `600 ${Math.max(7.5, Math.floor(8.0 * s))}px 'Inter', sans-serif`;
-        ctx.fillStyle = "#94a3b8";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(bpLabel, nx, ny);
       }
-      // =========================== CONCOURSE HUBS & JUNCTIONS ===========================
-      else {
-        const r = 6.0 * s;
-        const risk = node.risk || 0;
-        const peopleCount = node.current_people || 0;
-        const isHazardProne = (peopleCount / Math.max(1, node.capacity || 10)) >= 0.45 || risk >= 0.50;
 
-        // Subtle pulsing danger glow
-        if (isHazardProne) {
-          const pulse = (Math.sin(now * 0.007) + 1) * 0.5;
-          const auraRadius = r + (3 + pulse * 5) * s;
-          ctx.beginPath();
-          ctx.arc(nx, ny, auraRadius, 0, Math.PI * 2);
-          ctx.fillStyle = risk >= 0.75 ? `rgba(239, 68, 68, ${0.16 + pulse * 0.16})` : `rgba(245, 158, 11, ${0.16 + pulse * 0.12})`;
-          ctx.fill();
-        }
-
-        // Hover Ring
-        if (isHovered) {
-          ctx.beginPath();
-          ctx.arc(nx, ny, r + 4 * s, 0, Math.PI * 2);
-          ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        // AI Accent
-        if (isAiIntervened) {
-          ctx.beginPath();
-          ctx.arc(nx, ny, r + 4 * s, 0, Math.PI * 2);
-          ctx.strokeStyle = "#a78bfa";
-          ctx.lineWidth = 1.8 * s;
-          ctx.stroke();
-        }
-
-        if (isClosed) {
-          ctx.beginPath();
-          ctx.arc(nx, ny, r + 1 * s, 0, Math.PI * 2);
-          ctx.fillStyle = "#271418";
-          ctx.strokeStyle = "#ef4444";
-          ctx.lineWidth = 1.6 * s;
-          ctx.fill();
-          ctx.stroke();
-          drawClosedNodeBarrier(ctx, nx, ny, r, s);
-        } else {
-          ctx.beginPath();
-          ctx.arc(nx, ny, r, 0, Math.PI * 2);
-          ctx.fillStyle = "#18202c";
-          ctx.strokeStyle = isHazardProne ? (risk >= 0.75 ? "#ef4444" : "#f59e0b") : "#2b3749";
-          ctx.lineWidth = 1.3 * s;
-          ctx.fill();
-          ctx.stroke();
-        }
+      // AI Accent
+      if (isAiIntervened) {
+        ctx.beginPath();
+        ctx.arc(nx, ny, r + 3.0 * s, 0, Math.PI * 2);
+        ctx.strokeStyle = "#a78bfa";
+        ctx.lineWidth = 1.5 * s;
+        ctx.stroke();
       }
+
+      // Node Circle
+      ctx.beginPath();
+      ctx.arc(nx, ny, r, 0, Math.PI * 2);
+      ctx.fillStyle = isClosed ? "#271418" : nodeColor;
+      ctx.fill();
+      ctx.strokeStyle = isClosed ? "#ef4444" : (isHovered ? "#ffffff" : "rgba(255, 255, 255, 0.85)");
+      ctx.lineWidth = 1.5 * s;
+      ctx.stroke();
+
+      if (isClosed) {
+        drawClosedNodeBarrier(ctx, nx, ny, r, s);
+      }
+
+      // Node Label Typography & Offset
+      ctx.font = `600 ${Math.max(8, Math.floor(9.5 * s))}px 'JetBrains Mono', sans-serif`;
+      ctx.fillStyle = isClosed ? "#fca5a5" : "#e2e8f0";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(node.name || node.id, nx, ny - r - (2.0 * s));
 
       ctx.restore();
     }
@@ -2415,6 +2268,39 @@
   }
 
   function navigateTo(path, pushState = true) {
+    const splash = document.getElementById("splashScreen");
+    const landing = document.getElementById("landingScreen");
+    const appContainer = document.getElementById("app");
+    const modal = document.getElementById("scorecardModal");
+    const countdown = document.getElementById("countdownOverlay");
+
+    // Route: Initial Title Splash Screen
+    if (path === "/" || path === "" || path === "/title") {
+      if (pushState && window.location.pathname !== "/") {
+        window.history.pushState(null, "", "/");
+      }
+      apiPost("/api/simulation/stop").catch(() => {});
+      matchEnded = true;
+      isCountingDown = false;
+
+      if (modal) modal.hidden = true;
+      if (countdown) countdown.hidden = true;
+      if (appContainer) appContainer.style.display = "none";
+      if (landing) {
+        landing.hidden = true;
+        landing.style.display = "none";
+        const vid = landing.querySelector(".landing-bg-video") || document.getElementById("bgVideo");
+        if (vid) vid.pause();
+      }
+      if (splash) {
+        splash.hidden = false;
+        splash.classList.remove("fade-out");
+        splash.style.display = "flex";
+      }
+      return;
+    }
+
+    // Route: World Map Screen
     if (path === "/map") {
       if (pushState && window.location.pathname !== "/map") {
         window.history.pushState(null, "", "/map");
@@ -2424,23 +2310,24 @@
       matchEnded = true;
       isCountingDown = false;
 
-      const modal = document.getElementById("scorecardModal");
       if (modal) modal.hidden = true;
-
-      const countdown = document.getElementById("countdownOverlay");
       if (countdown) countdown.hidden = true;
-
-      const landing = document.getElementById("landingScreen");
-      const appContainer = document.getElementById("app");
       if (appContainer) appContainer.style.display = "none";
+      if (splash) {
+        splash.hidden = true;
+        splash.style.display = "none";
+      }
       if (landing) {
         landing.hidden = false;
         landing.style.display = "flex";
+        const vid = landing.querySelector(".landing-bg-video") || document.getElementById("bgVideo");
+        if (vid) vid.play().catch(() => {});
       }
       updateMapButtons();
       return;
     }
 
+    // Route: Gameplay Level
     const match = path.match(/^\/level([1-3])$/);
     if (match) {
       const lvl = parseInt(match[1], 10);
@@ -2451,11 +2338,15 @@
       if (pushState && window.location.pathname !== `/level${lvl}`) {
         window.history.pushState(null, "", `/level${lvl}`);
       }
-      const landing = document.getElementById("landingScreen");
-      const appContainer = document.getElementById("app");
+      if (splash) {
+        splash.hidden = true;
+        splash.style.display = "none";
+      }
       if (landing) {
         landing.hidden = true;
         landing.style.display = "none";
+        const vid = landing.querySelector(".landing-bg-video") || document.getElementById("bgVideo");
+        if (vid) vid.pause();
       }
       if (appContainer) {
         appContainer.style.display = "flex";
@@ -2465,25 +2356,84 @@
       return;
     }
 
-    // Default fallback to /map
-    navigateTo("/map", pushState);
+    // Default fallback to /
+    navigateTo("/", pushState);
   }
 
   function handleCurrentUrl(pushState = false) {
     const path = window.location.pathname;
+    if (path === "/map") {
+      navigateTo("/map", pushState);
+      return;
+    }
     const match = path.match(/^\/level([1-3])$/);
     if (match) {
       const lvl = parseInt(match[1], 10);
       if (lvl <= maxUnlockedLevel) {
         navigateTo(`/level${lvl}`, pushState);
         return;
+      } else {
+        navigateTo("/map", pushState);
+        return;
       }
     }
-    navigateTo("/map", pushState || path !== "/map");
+    // Default to Title Splash Screen for "/" or unhandled routes
+    navigateTo("/", pushState && path !== "/");
   }
 
   // ------------------------------------------------------------- Control Bar & Modal Wiring
   function wireControls() {
+    // Initial Title Splash Screen "CLICK TO PLAY" Button
+    const btnClickToPlay = document.getElementById("btnClickToPlay");
+    if (btnClickToPlay) {
+      const startPlayFromSplash = () => {
+        playClickSound();
+        const splash = document.getElementById("splashScreen");
+        if (splash) {
+          splash.classList.add("fade-out");
+          setTimeout(() => {
+            navigateTo("/map");
+          }, 280);
+        } else {
+          navigateTo("/map");
+        }
+      };
+      btnClickToPlay.addEventListener("click", startPlayFromSplash);
+      btnClickToPlay.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          startPlayFromSplash();
+        }
+      });
+    }
+
+    // Title / Home Navigation Buttons
+    const btnReturnTitle = document.getElementById("btnReturnTitle");
+    if (btnReturnTitle) {
+      btnReturnTitle.addEventListener("click", () => {
+        playClickSound();
+        navigateTo("/");
+      });
+    }
+
+    const btnHudTitle = document.getElementById("btnHudTitle");
+    if (btnHudTitle) {
+      btnHudTitle.addEventListener("click", () => {
+        playClickSound();
+        navigateTo("/");
+      });
+    }
+
+    const btnScorecardHome = document.getElementById("btnScorecardHome");
+    if (btnScorecardHome) {
+      btnScorecardHome.addEventListener("click", () => {
+        playClickSound();
+        const modal = document.getElementById("scorecardModal");
+        if (modal) modal.hidden = true;
+        navigateTo("/");
+      });
+    }
+
     // Interactive Landing Screen Level Hitboxes
     [1, 2, 3].forEach(lvl => {
       const btn = document.getElementById(`btnLaunchLvl${lvl}`);

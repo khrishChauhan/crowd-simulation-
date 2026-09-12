@@ -832,39 +832,7 @@
     },
     {
       "source": "T_L1",
-      "target": "H_L1",
-      "length": 32.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 25,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "T_L1",
       "target": "T_L2",
-      "length": 16.75,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 12.88,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "T_L2",
-      "target": "T_L1",
       "length": 16.75,
       "width": 5,
       "capacity": 12,
@@ -928,39 +896,7 @@
     },
     {
       "source": "T_R1",
-      "target": "H_R1",
-      "length": 33.75,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 25.96,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "T_R1",
       "target": "T_R2",
-      "length": 16.75,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 12.88,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "T_R2",
-      "target": "T_R1",
       "length": 16.75,
       "width": 5,
       "capacity": 12,
@@ -1009,22 +945,6 @@
     {
       "source": "T_C",
       "target": "C_MID",
-      "length": 33,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 25.38,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "C_MID",
-      "target": "T_C",
       "length": 33,
       "width": 5,
       "capacity": 12,
@@ -1295,198 +1215,6 @@
       "counterflow_ratio": 0
     },
     {
-      "source": "I_L1",
-      "target": "I_L2",
-      "length": 32.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 25,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "I_L2",
-      "target": "I_L1",
-      "length": 32.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 25,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "I_L2",
-      "target": "I_L3",
-      "length": 45,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 34.62,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "I_L3",
-      "target": "I_L2",
-      "length": 45,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 34.62,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L1",
-      "target": "O_L2",
-      "length": 30,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 23.08,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L2",
-      "target": "O_L1",
-      "length": 30,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 23.08,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L2",
-      "target": "O_L3",
-      "length": 17.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 13.46,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L3",
-      "target": "O_L2",
-      "length": 17.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 13.46,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L3",
-      "target": "O_L4",
-      "length": 30.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 23.46,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L4",
-      "target": "O_L3",
-      "length": 30.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 23.46,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L4",
-      "target": "O_L5",
-      "length": 22.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 17.31,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "O_L5",
-      "target": "O_L4",
-      "length": 22.5,
-      "width": 5,
-      "capacity": 12,
-      "travel_time": 17.31,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
       "source": "O_L7",
       "target": "O_L8",
       "length": 10.5,
@@ -1519,38 +1247,6 @@
       "counterflow_ratio": 0
     },
     {
-      "source": "ENTRY-02",
-      "target": "EMG-01",
-      "length": 84.87122598383978,
-      "width": 5,
-      "capacity": 5,
-      "travel_time": 65.29,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
-      "source": "EMG-01",
-      "target": "ENTRY-02",
-      "length": 84.87122598383978,
-      "width": 5,
-      "capacity": 5,
-      "travel_time": 65.29,
-      "current_flow": 0,
-      "predicted_flow": {},
-      "utilization": 0,
-      "risk": 0,
-      "enabled": true,
-      "direction": "BIDIRECTIONAL",
-      "control_state": "NORMAL",
-      "counterflow_ratio": 0
-    },
-    {
       "source": "O_L8",
       "target": "C_L4"
     },
@@ -1573,10 +1269,6 @@
     {
       "source": "B_L",
       "target": "CK-03"
-    },
-    {
-      "source": "EMG-01",
-      "target": "ENTRY-01"
     },
     {
       "source": "CK-04",
@@ -1685,6 +1377,30 @@
     {
       "source": "CK-20",
       "target": "CK-06"
+    },
+    {
+      "source": "O_L1",
+      "target": "O_L2"
+    },
+    {
+      "source": "O_L2",
+      "target": "O_L3"
+    },
+    {
+      "source": "O_L3",
+      "target": "O_L4"
+    },
+    {
+      "source": "O_L4",
+      "target": "O_L5"
+    },
+    {
+      "source": "I_L1",
+      "target": "I_L2"
+    },
+    {
+      "source": "I_L2",
+      "target": "I_L3"
     }
   ],
   "crates": [
@@ -1700,22 +1416,22 @@
     },
     {
       "id": "BOX-03",
-      "name": "Center Altar Crate",
-      "x": 639,
-      "y": 242,
-      "edge": [
-        "T_C",
-        "C_MID"
-      ]
-    },
-    {
-      "id": "BOX-03",
       "name": "BOX-03 Obstacle",
       "x": 970,
       "y": 261,
       "edge": [
         "CK-19",
         "H_R1"
+      ]
+    },
+    {
+      "id": "BOX-03",
+      "name": "BOX-03 Obstacle",
+      "x": 639,
+      "y": 242,
+      "edge": [
+        "T_C",
+        "C_MID"
       ]
     }
   ],

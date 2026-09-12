@@ -499,7 +499,7 @@ def build_custom_graph(filepath: str) -> StadiumGraph:
         }
     """
     import json as _json
-    with open(filepath) as f:
+    with open(filepath, encoding="utf-8") as f:
         data = _json.load(f)
 
     sg = StadiumGraph()
