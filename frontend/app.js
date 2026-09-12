@@ -30,8 +30,8 @@
   };
 
   const LEVEL_CONFIGS = {
-    1: { name: "ROOKIE", timeLimit: 150, target: 300, diff: "NOVICE" },
-    2: { name: "PRO",    timeLimit: 180, target: 400, diff: "PRO" },
+    1: { name: "ROOKIE", timeLimit: 150, target: 200, diff: "NOVICE" },
+    2: { name: "PRO",    timeLimit: 180, target: 300, diff: "PRO" },
     3: { name: "MASTER", timeLimit: 210, target: 600, diff: "PREDICTIVE" }
   };
 
