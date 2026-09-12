@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CrowdShield AI — Predictive Crowd Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============================= TOP BAR ============================= -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <svg class="brand-mark" width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="15" cy="15" r="13" stroke="var(--accent-cyan)" stroke-width="1.4" opacity="0.5"/>
+        <circle cx="15" cy="15" r="8.5" stroke="var(--accent-cyan)" stroke-width="1.4"/>
+        <circle cx="15" cy="15" r="2.6" fill="var(--accent-cyan)"/>
+      </svg>
+      <div class="brand-text">
+        <div class="brand-name">CrowdShield <span>AI</span></div>
+        <div class="brand-tagline">Predictive Crowd Intelligence &amp; Autonomous Flow Control</div>
+      </div>
+    </div>
+
+    <div class="topbar-status" id="statusStrip">
+      <div class="status-chip" id="chipSystem"><span class="dot dot-green"></span>SYSTEM <b>ONLINE</b></div>
+      <div class="status-chip warn">MODE <b>DEMO — PRE-RECORDED CCTV</b></div>
+      <div class="status-chip" id="chipCctv">CCTV <b id="cctvCount">5/5</b> ACTIVE</div>
+      <div class="status-chip" id="chipAi">AI <b>ACTIVE</b></div>
+      <div class="status-chip">CONTROL <b>AUTONOMOUS SIMULATION</b></div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="btnShadow" title="AI predicts &amp; recommends without applying actions">SHADOW MODE</button>
+      <button class="btn btn-primary" id="btnPresentation">PRESENTATION MODE</button>
+    </div>
+  </header>
+
+  <div class="connection-banner" id="connBanner" hidden>
+    Backend not reachable at <code id="connUrl"></code>. Start it with <code>uvicorn app.main:app --reload</code> — see README. Retrying…
+  </div>
+
+  <!-- ============================= MAIN GRID ============================= -->
+  <main class="grid">
+
+    <!-- LEFT: LIVE CCTV -->
+    <aside class="panel panel-cameras" id="panelCameras">
+      <div class="panel-head">
+        <h2>LIVE CCTV</h2>
+        <span class="panel-sub">5 checkpoint feeds</span>
+      </div>
+      <div class="camera-list" id="cameraList"><!-- injected --></div>
+    </aside>
+
+    <!-- CENTER: DIGITAL TWIN -->
+    <section class="panel panel-twin">
+      <div class="panel-head">
+        <h2>STADIUM DIGITAL TWIN <span class="twin-badge">2D</span></h2>
+        <div class="twin-controls">
+          <div class="horizon-toggle" id="horizonToggle">
+            <button data-h="0" class="active">NOW</button>
+            <button data-h="15">+15s</button>
+            <button data-h="30">+30s</button>
+            <button data-h="60">+60s</button>
+          </div>
+          <label class="switch-label"><input type="checkbox" id="toggleGhosts" checked/> Prediction ghosts</label>
+        </div>
+      </div>
+      <div class="twin-canvas-wrap">
+        <canvas id="twinCanvas"></canvas>
+        <div class="ai-flash" id="aiFlash" hidden></div>
+        <div class="emg-overlay" id="emgOverlay" hidden>🚨 EMERGENCY MODE ACTIVE</div>
+      </div>
+      <div class="twin-legend">
+        <span><i class="sw" style="background:var(--risk-verylow)"></i>Very low</span>
+        <span><i class="sw" style="background:var(--risk-low)"></i>Low</span>
+        <span><i class="sw" style="background:var(--risk-medium)"></i>Medium</span>
+        <span><i class="sw" style="background:var(--risk-high)"></i>High</span>
+        <span><i class="sw" style="background:var(--risk-critical)"></i>Critical</span>
+        <span class="legend-ghost"><i class="sw ghost-sw"></i>Predicted (ghost)</span>
+      </div>
+    </section>
+
+    <!-- RIGHT: AI INSIGHT + CHECKPOINT DETAIL -->
+    <aside class="panel panel-insight" id="panelInsight">
+      <div class="panel-head">
+        <h2>AI INSIGHT</h2>
+        <span class="panel-sub" id="loopStatus">● CONTROL LOOP ACTIVE</span>
+      </div>
+      <div id="aiInsightBody" class="ai-insight-body">
+        <div class="empty-state">Monitoring stadium state. No elevated risk detected.</div>
+      </div>
+
+      <div class="panel-divider"></div>
+
+      <div class="panel-head">
+        <h3>CHECKPOINT DETAIL</h3>
+        <span class="panel-sub">click a node on the twin</span>
+      </div>
+      <div id="checkpointDetail" class="checkpoint-detail">
+        <div class="empty-state">No checkpoint selected.</div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ============================= EVENT LOG + METRICS ============================= -->
+  <section class="panel panel-lower" id="panelLower">
+    <div class="lower-col lower-metrics">
+      <div class="panel-head"><h2>KEY METRICS</h2></div>
+      <div class="metrics-grid" id="metricsGrid"><!-- injected --></div>
+      <div class="panel-head" style="margin-top:14px;"><h3>ANALYTICS</h3></div>
+      <div class="chart-row">
+        <div class="chart-box"><canvas id="chartRisk"></canvas><span>Network risk over time</span></div>
+        <div class="chart-box"><canvas id="chartCrowd"></canvas><span>Total crowd over time</span></div>
+      </div>
+    </div>
+    <div class="lower-col lower-log">
+      <div class="panel-head"><h2>LIVE EVENT LOG</h2></div>
+      <div class="event-log" id="eventLog"></div>
+    </div>
+  </section>
+
+  <!-- ============================= DEMO CONTROL BAR ============================= -->
+  <footer class="demo-bar" id="demoBar">
+    <div class="demo-bar-group">
+      <button class="dbtn dbtn-go" id="btnStart">▶ START DEMO</button>
+      <button class="dbtn" id="btnPause">⏸ PAUSE</button>
+      <button class="dbtn" id="btnReset">↻ RESET</button>
+    </div>
+    <div class="demo-bar-group">
+      <button class="dbtn dbtn-warn" id="btnSurge">⚠ INJECT CROWD SURGE</button>
+      <button class="dbtn dbtn-warn" id="btnCloseExit">🚪 CLOSE EXIT-03</button>
+      <button class="dbtn dbtn-warn" id="btnCounterflow">↔ COUNTERFLOW</button>
+    </div>
+    <div class="demo-bar-group">
+      <button class="dbtn" id="btnPredict">🔮 PREDICT FUTURE</button>
+      <button class="dbtn" id="btnPlanner">🧠 RUN AI PLANNER</button>
+      <button class="dbtn" id="btnCompare">⚖ DO-NOTHING VS AI</button>
+    </div>
+    <div class="demo-bar-group">
+      <button class="dbtn dbtn-danger" id="btnEmergency">🚨 EMERGENCY MODE</button>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============================= COMPARISON MODAL ============================= -->
+<div class="modal-backdrop" id="compareModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h2>COUNTERFACTUAL COMPARISON</h2>
+      <button class="modal-close" id="closeCompare">✕</button>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-col">
+        <h3>WITHOUT AI INTERVENTION</h3>
+        <canvas id="compareLeft"></canvas>
+        <div class="compare-stats" id="compareStatsLeft"></div>
+      </div>
+      <div class="compare-col">
+        <h3>WITH AI INTERVENTION</h3>
+        <canvas id="compareRight"></canvas>
+        <div class="compare-stats" id="compareStatsRight"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
