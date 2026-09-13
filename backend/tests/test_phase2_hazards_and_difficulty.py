@@ -164,15 +164,15 @@ def test_game_level_api_configuration():
     assert data1["ok"] is True
     assert data1["level"] == 1
     assert data1["ai_difficulty"] == "novice"
-    assert data1["target_evacuation"] == 300
+    assert data1["target_evacuation"] == 200
     assert ai_sim.difficulty == "novice"
-    assert player_sim.target_evacuation == 300
+    assert player_sim.target_evacuation == 200
 
     # Test Level 2 -> Pro
     data2 = set_game_level(LevelConfigRequest(level=2))
     assert data2["level"] == 2
     assert data2["ai_difficulty"] == "pro"
-    assert data2["target_evacuation"] == 400
+    assert data2["target_evacuation"] == 300
     assert ai_sim.difficulty == "pro"
 
     # Test Level 3 -> Super-Predictive

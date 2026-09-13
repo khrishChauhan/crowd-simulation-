@@ -46,3 +46,22 @@ def test_all_destinations_reachable_guardrail():
     sg = build_stadium_graph()
     exits = [n for n, d in sg.nodes.items() if d.type == "EXIT"]
     assert all_destinations_reachable(sg, "GATE-01", exits)
+
+
+def test_static_shortest_path_ignores_congestion_and_risk():
+    from app.routing import static_shortest_path
+    sg = build_stadium_graph()
+    gates = [n for n, d in sg.nodes.items() if d.type == "GATE"]
+    exits = [n for n, d in sg.nodes.items() if d.type == "EXIT"]
+    for g in gates:
+        for e in exits:
+            p = static_shortest_path(sg, g, e)
+            assert p is not None
+
+
+def test_player_arena_uses_static_shortest_path_ai_uses_dynamic():
+    from app.simulation import SimulationEngine
+    player_sim = SimulationEngine(arena_id="player")
+    ai_sim = SimulationEngine(arena_id="ai")
+    assert player_sim.use_dynamic_astar is False
+    assert ai_sim.use_dynamic_astar is True

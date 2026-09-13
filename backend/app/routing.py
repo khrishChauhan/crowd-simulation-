@@ -86,6 +86,62 @@ def safest_route_exists(sg: StadiumGraph, start: str, goal: str) -> bool:
     return dynamic_astar(sg, start, goal) is not None
 
 
+def static_shortest_path(sg: StadiumGraph, start: str, goal: str) -> Optional[List[str]]:
+    """Pure distance-only Dijkstra for the human player arena.
+
+    Edge cost = edge.length only.  All congestion, risk, utilisation and
+    travel-time penalties are set to zero so agents always walk the
+    geometrically shortest corridor.  Hard blocks (BLOCK state, disabled
+    edges, blocked target nodes) are still respected so that player crates,
+    barriers and gate controls work correctly.
+    """
+    from .graph_model import ALIAS_MAP
+    if start not in sg.nodes or goal not in sg.nodes:
+        return None
+    canonical_start = ALIAS_MAP.get(start, start)
+    canonical_goal  = ALIAS_MAP.get(goal,  goal)
+
+    dist: Dict[str, float] = {canonical_start: 0.0}
+    prev: Dict[str, str]   = {}
+    visited: set            = set()
+    pq = [(0.0, canonical_start)]
+
+    while pq:
+        d, u = heapq.heappop(pq)
+        if u in visited:
+            continue
+        visited.add(u)
+        if u == canonical_goal:
+            break
+        for v in sg.neighbors(u):
+            e = sg.edges.get((u, v))
+            # Respect hard blocks exactly like dynamic_astar does
+            if e is None or not e.enabled or e.control_state == "BLOCK":
+                continue
+            tgt = sg.nodes.get(v)
+            if tgt and tgt.control_state == "BLOCK":
+                continue
+            # Pure distance cost — zero weights on everything else
+            cost = e.length
+            nd = d + cost
+            if nd < dist.get(v, float("inf")):
+                dist[v] = nd
+                prev[v] = u
+                heapq.heappush(pq, (nd, v))
+
+    if canonical_goal not in dist:
+        return None
+    path = [canonical_goal]
+    while path[-1] != canonical_start:
+        path.append(prev[path[-1]])
+    path.reverse()
+    if start != canonical_start:
+        path[0] = start
+    if goal != canonical_goal:
+        path[-1] = goal
+    return path
+
+
 def all_destinations_reachable(sg: StadiumGraph, start: str, destinations: List[str]) -> bool:
     """Safety guardrail: verify at least one feasible route remains to every destination."""
     return all(safest_route_exists(sg, start, d) for d in destinations)

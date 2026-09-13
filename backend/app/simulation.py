@@ -34,7 +34,7 @@ from . import config
 from .graph_model import StadiumGraph, build_stadium_graph, build_temple_graph, build_graph_for_level
 from .predictor import SpatioTemporalCrowdPredictor
 from .risk_engine import node_risk, band_for, bottleneck_probability, time_to_critical_seconds, critical_people_for_node
-from .routing import dynamic_astar
+from .routing import dynamic_astar, static_shortest_path
 from .intervention import plan_intervention, no_safe_action_decision, Decision
 from .detectors import detect_surge, detect_counterflow, predict_cascade
 from .cv_pipeline import CameraManager
@@ -78,6 +78,8 @@ class SimulationEngine:
         self.arena_id = arena_id
         self.difficulty = difficulty
         self.center_dwell_sec = center_dwell_sec
+        # Routing mode: AI uses full risk-aware A*, player uses pure distance Dijkstra
+        self.use_dynamic_astar: bool = (arena_id == "ai")
         self.agents: Dict[int, Agent] = {}
         self._next_agent_id = itertools.count(1)
         self.tick_count = 0
@@ -97,7 +99,7 @@ class SimulationEngine:
         self.last_intervention_tick: int = 0
         # ---- Lifecycle node groups ----
         self._gate_nodes = [n for n, node in self.sg.nodes.items() if node.type == "GATE"]
-        self._seating_nodes = [n for n, node in self.sg.nodes.items() if node.type == "SEATING"] or [n for n, node in self.sg.nodes.items() if node.type in ("CHECKPOINT", "JUNCTION")]
+        self._seating_nodes = [n for n, node in self.sg.nodes.items() if node.type == "SEATING"]
         self._exit_nodes = [n for n, node in self.sg.nodes.items() if node.type == "EXIT"]
         self._destinations = [n for n, node in self.sg.nodes.items() if node.type in DESTINATION_TYPES]
         # ---- Arena state counters ----
@@ -112,11 +114,64 @@ class SimulationEngine:
         self.metrics_history: List[dict] = []
         # Pre-seeding disabled: pure gate ingress starts when match starts
 
+    def _route(self, start: str, goal: str, horizon: int = 15) -> Optional[List[str]]:
+        """Dispatch to the correct routing function based on arena mode.
+
+        - AI arena  (use_dynamic_astar=True):  full risk/congestion-aware A*
+        - Player arena (use_dynamic_astar=False): pure distance-only Dijkstra
+          so agents stick to the geometrically shortest path and only divert
+          when the player physically blocks a corridor (BLOCK, crate, barrier).
+        """
+        if self.use_dynamic_astar:
+            return dynamic_astar(self.sg, start, goal, horizon)
+        return static_shortest_path(self.sg, start, goal)
+
+    def _closest_exit(self, from_node: str) -> Optional[str]:
+        """Find the active exit node that has the shortest geometric distance path from from_node."""
+        active_exits = self._get_active_exits()
+        if not active_exits:
+            return None
+        if len(active_exits) == 1:
+            return active_exits[0]
+        best_exit = None
+        best_dist = float("inf")
+        for ex in active_exits:
+            path = static_shortest_path(self.sg, from_node, ex)
+            if path and len(path) > 1:
+                dist = 0.0
+                for i in range(len(path) - 1):
+                    e = self.sg.edges.get((path[i], path[i+1]))
+                    dist += e.length if e else 1.0
+                if dist < best_dist:
+                    best_dist = dist
+                    best_exit = ex
+        return best_exit or active_exits[0]
+
+    def _closest_seating(self, from_node: str) -> Optional[str]:
+        """Find the seating node that has the shortest geometric distance path from from_node."""
+        if not self._seating_nodes:
+            return None
+        if len(self._seating_nodes) == 1:
+            return self._seating_nodes[0]
+        best_seat = None
+        best_dist = float("inf")
+        for seat in self._seating_nodes:
+            path = static_shortest_path(self.sg, from_node, seat)
+            if path and len(path) > 1:
+                dist = 0.0
+                for i in range(len(path) - 1):
+                    e = self.sg.edges.get((path[i], path[i+1]))
+                    dist += e.length if e else 1.0
+                if dist < best_dist:
+                    best_dist = dist
+                    best_seat = seat
+        return best_seat or self._seating_nodes[0]
+
     def set_level(self, level: int):
         self.level = level
         self.sg = build_graph_for_level(level)
         self._gate_nodes = [n for n, node in self.sg.nodes.items() if node.type == "GATE"]
-        self._seating_nodes = [n for n, node in self.sg.nodes.items() if node.type == "SEATING"] or [n for n, node in self.sg.nodes.items() if node.type in ("CHECKPOINT", "JUNCTION")]
+        self._seating_nodes = [n for n, node in self.sg.nodes.items() if node.type == "SEATING"]
         self._exit_nodes = [n for n, node in self.sg.nodes.items() if node.type == "EXIT"]
         self._destinations = [n for n, node in self.sg.nodes.items() if node.type in DESTINATION_TYPES]
         self.agents.clear()
@@ -155,12 +210,12 @@ class SimulationEngine:
         # Default destination depends on stage
         if destination is None:
             if stage == "INGRESS":
-                destination = self.rng.choice(self._seating_nodes)
+                destination = self._closest_seating(at_node) if self.arena_id == "player" else (self.rng.choice(self._seating_nodes) if self._seating_nodes else None)
             else:
                 active_exits = self._get_active_exits()
-                destination = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
+                destination = self._closest_exit(at_node) if self.arena_id == "player" else (self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes))
         destination = ALIAS_MAP.get(destination, destination)
-        route = dynamic_astar(self.sg, at_node, destination) or [at_node]
+        route = self._route(at_node, destination) or [at_node]
         node = self.sg.nodes[at_node]
         aid = next(self._next_agent_id)
         agent = Agent(
@@ -212,8 +267,21 @@ class SimulationEngine:
                 gate = available_gates[self._gate_cycle_idx % len(available_gates)]
                 self._gate_cycle_idx += 1
 
-                seating = self.rng.choice(self._seating_nodes) if self._seating_nodes else None
-                self._spawn_agent(gate, destination=seating, stage="INGRESS")
+                if self._seating_nodes:
+                    if self.arena_id == "player":
+                        dest = self._closest_seating(gate)
+                    else:
+                        dest = self.rng.choice(self._seating_nodes)
+                    stg = "INGRESS"
+                else:
+                    if self.arena_id == "player":
+                        dest = self._closest_exit(gate)
+                    else:
+                        active_exits = self._get_active_exits()
+                        dest = self.rng.choice(active_exits) if active_exits else None
+                    stg = "EGRESS"
+
+                self._spawn_agent(gate, destination=dest, stage=stg)
 
                 # Rapid arcade cadence: ~10 to 18 agents/sec (interval between ~0.055s and 0.10s)
                 self.spawn_timer += self.rng.uniform(1.0 / 18.0, 1.0 / 10.0)
@@ -262,9 +330,12 @@ class SimulationEngine:
                 return
             # Dwell expired → transition to Stage 3 EGRESS
             agent.stage = "EGRESS"
-            active_exits = self._get_active_exits()
-            exit_dest = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
-            egress_route = dynamic_astar(self.sg, agent.current_node, exit_dest)
+            if self.arena_id == "player":
+                exit_dest = self._closest_exit(agent.current_node)
+            else:
+                active_exits = self._get_active_exits()
+                exit_dest = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
+            egress_route = self._route(agent.current_node, exit_dest)
             if egress_route:
                 agent.destination = exit_dest
                 agent.route = egress_route[1:]
@@ -285,15 +356,18 @@ class SimulationEngine:
                 return
             elif agent.stage == "EGRESS":
                 # Route expired but not at exit yet — reroute to active exit
-                active_exits = self._get_active_exits()
-                exit_dest = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
-                egress_route = dynamic_astar(self.sg, agent.current_node, exit_dest)
+                if self.arena_id == "player":
+                    exit_dest = self._closest_exit(agent.current_node)
+                else:
+                    active_exits = self._get_active_exits()
+                    exit_dest = self.rng.choice(active_exits) if active_exits else self.rng.choice(self._exit_nodes)
+                egress_route = self._route(agent.current_node, exit_dest)
                 if egress_route:
                     agent.destination = exit_dest
                     agent.route = egress_route[1:]
             else:
                 # Reroute toward current destination
-                new_route = dynamic_astar(self.sg, agent.current_node, agent.destination)
+                new_route = self._route(agent.current_node, agent.destination)
                 agent.route = new_route[1:] if new_route else []
             if not agent.route:
                 return
@@ -306,7 +380,7 @@ class SimulationEngine:
         if cs in ("REDIRECT_LEFT", "REDIRECT_RIGHT") and self.rng.random() < agent.compliance_probability:
             alt = self._alternate_neighbor(agent.current_node, next_node_id, cs)
             if alt:
-                rerouted = dynamic_astar(self.sg, alt, agent.destination)
+                rerouted = self._route(alt, agent.destination)
                 if rerouted:
                     agent.route = [alt] + rerouted[1:]
                     next_node_id = alt
@@ -318,7 +392,7 @@ class SimulationEngine:
                 split = min_cost_flow_split(self.sg, agent.current_node, active_exits, demand=float(len(self.agents)))
                 best_exit = max(split.keys(), key=lambda ex: split.get(ex, 0.0))
                 if best_exit != agent.destination:
-                    rerouted = dynamic_astar(self.sg, agent.current_node, best_exit)
+                    rerouted = self._route(agent.current_node, best_exit)
                     if rerouted and len(rerouted) > 1:
                         agent.destination = best_exit
                         agent.route = rerouted[1:]
@@ -327,7 +401,7 @@ class SimulationEngine:
 
         target_node = self.sg.nodes.get(next_node_id)
         if edge is None or not edge.enabled or edge.control_state == "BLOCK" or (target_node and target_node.control_state == "BLOCK"):
-            rerouted = dynamic_astar(self.sg, agent.current_node, agent.destination)
+            rerouted = self._route(agent.current_node, agent.destination)
             if rerouted and len(rerouted) > 1:
                 agent.route = rerouted[1:]
                 next_node_id = agent.route[0]
@@ -338,7 +412,7 @@ class SimulationEngine:
                     active_exits = self._get_active_exits()
                     for alt_ex in active_exits:
                         if alt_ex != agent.destination and self.sg.nodes[alt_ex].control_state != "BLOCK":
-                            alt_route = dynamic_astar(self.sg, agent.current_node, alt_ex)
+                            alt_route = self._route(agent.current_node, alt_ex)
                             if alt_route and len(alt_route) > 1:
                                 agent.destination = alt_ex
                                 agent.route = alt_route[1:]
@@ -525,9 +599,10 @@ class SimulationEngine:
         # 5. HAZARD CHECK (50% crowd crush hazard check & +3s penalty)
         self._check_hazards()
 
-        # 6. Identify risk location(s) and OPTIMIZE + CONTROL
+        # 6. Identify risk location(s) and OPTIMIZE + CONTROL (AI Arena Only)
         self._auto_reopen()
-        self._evaluate_and_intervene()
+        if self.arena_id == "ai":
+            self._evaluate_and_intervene()
 
     def _check_hazards(self):
         """Evaluate checkpoints and junctions for crowd crush hazard incidents."""
@@ -813,7 +888,7 @@ class SimulationEngine:
                 if agent.stage == "EGRESS" and agent.destination == exit_id:
                     alt_exit = self.rng.choice(active_exits)
                     start_at = agent.target_node if agent.target_node else agent.current_node
-                    rerouted = dynamic_astar(self.sg, start_at, alt_exit)
+                    rerouted = self._route(start_at, alt_exit)
                     if rerouted:
                         agent.destination = alt_exit
                         agent.route = rerouted[1:]
@@ -843,7 +918,7 @@ class SimulationEngine:
         for agent in seating_c_agents:
             agent.stage = "EGRESS"
             agent.destination = entry_1
-            route = dynamic_astar(self.sg, agent.current_node, entry_1)
+            route = self._route(agent.current_node, entry_1)
             if route:
                 agent.route = route[1:]
         for _ in range(40):

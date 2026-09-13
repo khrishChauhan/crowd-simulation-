@@ -140,10 +140,10 @@ def test_backend_level_config_and_pause_for_countdown():
 def test_level_config_targets_and_limits():
     """Verify LEVEL_CONFIGS mapping matches the arcade progression requirements."""
     assert LEVEL_CONFIGS[1]["difficulty"] == "novice"
-    assert LEVEL_CONFIGS[1]["target_evacuation"] == 300
+    assert LEVEL_CONFIGS[1]["target_evacuation"] == 200
     assert LEVEL_CONFIGS[1]["time_limit_sec"] == 150
     assert LEVEL_CONFIGS[2]["difficulty"] == "pro"
-    assert LEVEL_CONFIGS[2]["target_evacuation"] == 400
+    assert LEVEL_CONFIGS[2]["target_evacuation"] == 300
     assert LEVEL_CONFIGS[2]["time_limit_sec"] == 180
     assert LEVEL_CONFIGS[3]["difficulty"] == "super_predictive"
     assert LEVEL_CONFIGS[3]["target_evacuation"] == 600
