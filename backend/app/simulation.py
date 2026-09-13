@@ -107,11 +107,10 @@ class SimulationEngine:
         self.incident_count: int = 0
         self.evacuation_log: List[dict] = []
         self.total_spawned: int = 0
-        self.spawn_timer_sec: float = 0.0
-        self.spawn_budget_this_second: int = 0
-        # ---- Seed initial population ----
-        self._seed_population(base_size=250 if level == 1 else 320)
+        self.spawn_timer: float = 0.0
+        self._gate_cycle_idx: int = 0
         self.metrics_history: List[dict] = []
+        # Pre-seeding disabled: pure gate ingress starts when match starts
 
     def set_level(self, level: int):
         self.level = level
@@ -124,19 +123,21 @@ class SimulationEngine:
         self.tick_count = 0
         self.evacuated_count = 0
         self.total_spawned = 0
-        self.spawn_timer_sec = 0.0
-        self.spawn_budget_this_second = 0
+        self.spawn_timer = 0.0
+        self._gate_cycle_idx = 0
         self.penalty_seconds = 0.0
         self.incident_count = 0
         self.evacuation_log.clear()
         self.events.clear()
         self.decisions_log.clear()
         self.active_decision = None
-        self._seed_population(base_size=250 if level == 1 else 320)
+        # Pre-seeding disabled: pure gate ingress starts when match starts
 
     # ---------------------------------------------------------------- setup
-    def _seed_population(self, base_size: int):
-        """Spawn an initial population entering through gates and concourses toward seating."""
+    def _seed_population(self, base_size: int = 0):
+        """Pre-seeding helper (disabled by default for pure gate ingress)."""
+        if base_size <= 0:
+            return
         spawn_pool = self._gate_nodes * 2 + [n for n, node in self.sg.nodes.items() if node.type in ("CHECKPOINT", "JUNCTION")]
         for _ in range(base_size):
             node_id = self.rng.choice(spawn_pool)
@@ -193,36 +194,29 @@ class SimulationEngine:
         self._recompute_occupancy()
 
         # -----------------------------------------------------------------
-        # True Random Trickle Spawner (Every second)
+        # Rapid Arcade Gate Ingress Spawner (~10 to 18 agents/sec across gates)
         # -----------------------------------------------------------------
-        if len(self.agents) < self.target_evacuation and self.evacuated_count < self.target_evacuation:
-            # 1-second countdown bucket
-            if not hasattr(self, 'spawn_timer_sec') or self.spawn_timer_sec <= 0:
-                self.spawn_timer_sec = 1.0
-                # Randomize how many people spawn this entire second 
-                # (e.g., randint(3, 10))
-                self.spawn_budget_this_second = self.rng.randint(3, 10)
-            
-            self.spawn_timer_sec -= dt
-            
-            # Distribute this second's budget randomly across its remaining ticks
-            ticks_left = max(1, int(self.spawn_timer_sec / dt))
-            chance_per_tick = self.spawn_budget_this_second / ticks_left
-            
-            spawn_count = 0
-            if self.rng.random() < chance_per_tick:
-                spawn_count = 1
-                self.spawn_budget_this_second -= 1
-            
-            spawn_count = min(spawn_count, self.target_evacuation - len(self.agents))
-            
-            for _ in range(spawn_count):
-                if len(self.agents) < config.MAX_PARTICLES:
-                    gate = self.rng.choice(self._gate_nodes)
-                    # If the player clicked the Gate to BLOCK it, skip spawning!
-                    if self.sg.nodes[gate].control_state != "BLOCK":
-                        seating = self.rng.choice(self._seating_nodes)
-                        self._spawn_agent(gate, destination=seating, stage="INGRESS")
+        if self.total_spawned < self.target_evacuation and len(self.agents) < config.MAX_PARTICLES:
+            self.spawn_timer -= dt
+            while self.spawn_timer <= 0 and self.total_spawned < self.target_evacuation and len(self.agents) < config.MAX_PARTICLES:
+                # Available perimeter gates (skip blocked gates)
+                available_gates = [
+                    g for g in self._gate_nodes
+                    if self.sg.nodes.get(g) and self.sg.nodes[g].control_state != "BLOCK"
+                ]
+                if not available_gates:
+                    self.spawn_timer = 0.05
+                    break
+
+                # Distribute incoming agents evenly across available gates (round-robin)
+                gate = available_gates[self._gate_cycle_idx % len(available_gates)]
+                self._gate_cycle_idx += 1
+
+                seating = self.rng.choice(self._seating_nodes) if self._seating_nodes else None
+                self._spawn_agent(gate, destination=seating, stage="INGRESS")
+
+                # Rapid arcade cadence: ~10 to 18 agents/sec (interval between ~0.055s and 0.10s)
+                self.spawn_timer += self.rng.uniform(1.0 / 18.0, 1.0 / 10.0)
 
         if self.tick_count % config.CONTROL_INTERVAL_TICKS == 0:
             self._control_cycle()
@@ -407,10 +401,10 @@ class SimulationEngine:
             ) or (occupancy >= threshold_x)
 
             if is_congested:
-                movement_speed = config.NPC_SPEED_SLOW  # 30% of base speed (3.0)
+                movement_speed = config.NPC_SPEED_SLOW  # 4.5 units/sec (slow / congested)
                 agent.is_congested = True
             else:
-                movement_speed = config.NPC_SPEED_FAST  # 100% of base speed (10.0)
+                movement_speed = config.NPC_SPEED_FAST  # 15.0 units/sec (base brisk speed)
                 agent.is_congested = False
 
         agent.progress += (movement_speed * dt * 2.5) / max(edge.length, 1.0)

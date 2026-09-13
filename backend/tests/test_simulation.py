@@ -52,16 +52,17 @@ def test_all_demo_scenarios_run_without_crashing():
 
 
 def test_reset_restores_baseline_population():
-    # Level 2 (default) seeds 320 agents
+    # Pre-seeding disabled: simulation starts with 0 agents and resets to 0
     sim = SimulationEngine()
+    assert len(sim.agents) == 0
     sim.inject_crowd_surge("GATE-01", 100)
-    assert len(sim.agents) > 320
+    assert len(sim.agents) == 100
     sim.reset()
-    assert 300 <= len(sim.agents) <= 340
+    assert len(sim.agents) == 0
 
-    # Level 1 seeds 250 agents
+    # Level 1 also starts with 0 agents
     sim1 = SimulationEngine(level=1)
-    assert 240 <= len(sim1.agents) <= 260
+    assert len(sim1.agents) == 0
 
 
 def test_emergency_corridor_returns_a_path_when_feasible():
@@ -85,6 +86,7 @@ def test_snapshot_is_json_serialisable_shape():
 
 def test_strict_binary_two_speed_system():
     sim = SimulationEngine()
+    sim.step()
     # Pick a valid edge
     edge_key = next(iter(sim.sg.edges.keys()))
     edge = sim.sg.edges[edge_key]
@@ -123,15 +125,16 @@ def test_strict_binary_two_speed_system():
 
 
 def test_spawn_boost_and_earlier_congestion_threshold():
+    # Pre-seeding disabled: all levels start with 0 agents
     sim1 = SimulationEngine(level=1)
-    assert len(sim1.agents) == 250
+    assert len(sim1.agents) == 0
     sim2 = SimulationEngine(level=2)
-    assert len(sim2.agents) == 320
+    assert len(sim2.agents) == 0
     sim3 = SimulationEngine(level=3)
-    assert len(sim3.agents) == 320
+    assert len(sim3.agents) == 0
 
-    # Verify trickle spawn budget is within [3, 10]
-    sim1.spawn_timer_sec = 0.0
-    sim1.step()
-    assert 2 <= sim1.spawn_budget_this_second <= 10
+    # Step simulation for 1 second (20 ticks) and verify arcade spawn rate ~10 to 18 agents spawned
+    for _ in range(20):
+        sim1.step()
+    assert 10 <= sim1.total_spawned <= 18
 

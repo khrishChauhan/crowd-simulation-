@@ -16,6 +16,8 @@ from app import config
 def test_agent_spawn_at_gate_with_seating_destination():
     """Agents must spawn at perimeter gates (GATE-xx) and head toward SEATING."""
     sim = SimulationEngine()
+    sim.step()
+    assert len(sim.agents) > 0
     for aid, agent in sim.agents.items():
         assert agent.stage == "INGRESS", f"Agent {aid} should be INGRESS, got {agent.stage}"
         # destination must be a SEATING node

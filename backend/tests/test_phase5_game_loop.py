@@ -100,7 +100,7 @@ def test_backend_level_config_and_pause_for_countdown():
     res = set_game_level(LevelConfigRequest(level=1, start_immediately=False))
     assert res["ok"] is True
     assert res["level"] == 1
-    assert res["time_limit_sec"] == 120
+    assert res["time_limit_sec"] == 150
     assert player_sim.running is False
     assert ai_sim.running is False
     assert ai_sim.difficulty == "novice"
@@ -111,7 +111,7 @@ def test_backend_level_config_and_pause_for_countdown():
     res2 = set_game_level(LevelConfigRequest(level=2, start_immediately=False))
     assert res2["ok"] is True
     assert res2["level"] == 2
-    assert res2["time_limit_sec"] == 120
+    assert res2["time_limit_sec"] == 180
     assert ai_sim.difficulty == "pro"
     assert player_sim.running is False
     assert ai_sim.running is False
@@ -120,7 +120,7 @@ def test_backend_level_config_and_pause_for_countdown():
     res3 = set_game_level(LevelConfigRequest(level=3, start_immediately=False))
     assert res3["ok"] is True
     assert res3["level"] == 3
-    assert res3["time_limit_sec"] == 100
+    assert res3["time_limit_sec"] == 210
     assert ai_sim.difficulty == "super_predictive"
     assert player_sim.running is False
     assert ai_sim.running is False
@@ -140,11 +140,11 @@ def test_backend_level_config_and_pause_for_countdown():
 def test_level_config_targets_and_limits():
     """Verify LEVEL_CONFIGS mapping matches the arcade progression requirements."""
     assert LEVEL_CONFIGS[1]["difficulty"] == "novice"
-    assert LEVEL_CONFIGS[1]["target_evacuation"] == 500
-    assert LEVEL_CONFIGS[1]["time_limit_sec"] == 120
+    assert LEVEL_CONFIGS[1]["target_evacuation"] == 300
+    assert LEVEL_CONFIGS[1]["time_limit_sec"] == 150
     assert LEVEL_CONFIGS[2]["difficulty"] == "pro"
-    assert LEVEL_CONFIGS[2]["target_evacuation"] == 750
-    assert LEVEL_CONFIGS[2]["time_limit_sec"] == 120
+    assert LEVEL_CONFIGS[2]["target_evacuation"] == 400
+    assert LEVEL_CONFIGS[2]["time_limit_sec"] == 180
     assert LEVEL_CONFIGS[3]["difficulty"] == "super_predictive"
-    assert LEVEL_CONFIGS[3]["target_evacuation"] == 1000
-    assert LEVEL_CONFIGS[3]["time_limit_sec"] == 100
+    assert LEVEL_CONFIGS[3]["target_evacuation"] == 600
+    assert LEVEL_CONFIGS[3]["time_limit_sec"] == 210

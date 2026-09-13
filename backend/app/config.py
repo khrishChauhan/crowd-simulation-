@@ -47,10 +47,10 @@ RISK_WEIGHTS = {
 # ---------------------------------------------------------------------------
 GRAPH_WEIGHTS = {
     "distance": 1.0,
-    "congestion": 4.0,     # lambda1
-    "predicted_risk": 6.0,  # lambda2
-    "utilization": 3.0,     # lambda3
-    "travel_time": 1.5,     # lambda4
+    "congestion": 0.5,     # lambda1 - reduced for direct shortest-path commitment
+    "predicted_risk": 0.5, # lambda2 - reduced for direct shortest-path commitment
+    "utilization": 0.5,    # lambda3
+    "travel_time": 0.5,    # lambda4
 }
 
 # ---------------------------------------------------------------------------
@@ -142,8 +142,8 @@ AI_ALLOWED_ACTIONS = {
 # ---------------------------------------------------------------------------
 # Strict Binary 2-Speed Simulation System
 # ---------------------------------------------------------------------------
-NPC_SPEED_FAST = 10.0                     # 100% of base speed
-NPC_SPEED_SLOW = 3.0                      # 30% of base speed
+NPC_SPEED_FAST = 15.0                     # Base brisk speed (15.0 units/sec)
+NPC_SPEED_SLOW = 4.5                      # Congested speed (4.5 units/sec)
 NPC_CONGESTION_CAPACITY_RATIO = 0.45      # 45% of edge capacity
 NPC_DEFAULT_CONGESTION_THRESHOLD = 8.0    # 8 concurrent agents on a corridor segment
 
